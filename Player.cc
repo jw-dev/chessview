@@ -41,12 +41,6 @@ auto RandomPlayer::getMove (Board& board) const -> Move
     return getRandom (moves);
     }
 
-auto RandomPlayer::name () const -> std::string 
-    {
-    return "Random";
-    }
-
-
 // White moves
 
 auto WhiteSquares::evalBoard (Board& board) const -> u32 
@@ -65,13 +59,7 @@ auto WhiteSquares::evalBoard (Board& board) const -> u32
     return countWhite;
     }
 
-auto WhiteSquares::name () const -> std::string 
-    {
-    return "WhiteSquares";
-    }
-
 // Black squares.
-
 auto BlackSquares::evalBoard (Board& board) const -> u32
     {
     int countBlack = 0; 
@@ -89,30 +77,90 @@ auto BlackSquares::evalBoard (Board& board) const -> u32
     return countBlack;
     }
 
-auto BlackSquares::name () const -> std::string 
-    {
-    return "BlackSquares";
-    }
-
-
-
 // Min opponent moves.
-
 auto MinimizeOpponentMoves::evalBoard (Board& board) const -> u32
     {
     u8 oppColor = color == WHITE? BLACK: WHITE;
     return 100 - board.getMoves (oppColor).size ();
     }
 
-auto MinimizeOpponentMoves::name () const -> std::string
+// Defensive.
+auto Defensive::evalBoard (Board& board) const -> u32
     {
-    return "MinimizeOpponentMoves";
+    u8 pieces = 0;
+    u8 piecesAttacked = 0;
+    for (int c = 0; c < Board::GRID_LENGTH; ++c) 
+        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
+            {
+            u8 piece = board.pieceAt (c, r);
+            if (piece && ((piece & Board::COLOR_MASK) == color))
+                {
+                pieces++;
+                if (board.isAttacked (c, r))
+                    piecesAttacked++;
+                }
+            }
+    return (100 * pieces) - piecesAttacked;
     }
 
+// Suicidal.
+auto Suicidal::evalBoard (Board& board) const -> u32
+    {
+    u8 pieces = 0;
+    u8 piecesAttacked = 0;
+    for (int c = 0; c < Board::GRID_LENGTH; ++c) 
+        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
+            {
+            u8 piece = board.pieceAt (c, r);
+            if (piece && (piece & Board::COLOR_MASK) == color) 
+                {
+                pieces++;
+                if (board.isAttacked (c, r))
+                    piecesAttacked++;
+                }
+            }
+    return (UINT32_MAX - (100 * pieces)) + piecesAttacked;
+    }
 
+// Pacifist.
+auto Pacifist::evalBoard (Board& board) const -> u32
+    {
+    u8 pieces = 0;
+    u8 piecesAttacked = 0;
+    u8 enemy = (color == BLACK ? WHITE: BLACK);
+    for (int c = 0; c < Board::GRID_LENGTH; ++c) 
+        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
+            {
+            u8 piece = board.pieceAt (c, r);
+            if (piece && (piece & Board::COLOR_MASK) == enemy) 
+                {
+                pieces++;
+                if (board.isAttacked (c, r))
+                    piecesAttacked++;
+                }
+            }
+    return (100 * pieces) - piecesAttacked;
+    }
 
-
-
+// Offensive.
+auto Offensive::evalBoard (Board& board) const -> u32
+    {
+    u8 pieces = 0;
+    u8 piecesAttacked = 0;
+    u8 enemy = (color == BLACK ? WHITE: BLACK);
+    for (int c = 0; c < Board::GRID_LENGTH; ++c) 
+        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
+            {
+            u8 piece = board.pieceAt (c, r);
+            if (piece && (piece & Board::COLOR_MASK) == enemy) 
+                {
+                pieces++;
+                if (board.isAttacked (c, r))
+                    piecesAttacked++;
+                }
+            }
+    return (UINT32_MAX - (100 * pieces)) + piecesAttacked;
+    }
 
 Player* makeRandom () 
     {
@@ -132,4 +180,24 @@ Player* makeBlackSquares()
 Player* makeMinimizeOpponentMoves()
     {
     return new MinimizeOpponentMoves();
+    }
+
+Player* makeDefensive()
+    {
+    return new Defensive();
+    }
+
+Player* makeOffensive()
+    {
+    return new Offensive();
+    }
+
+Player* makeSuicidal()
+    {
+    return new Suicidal();
+    }
+
+Player* makePacifist()
+    {
+    return new Pacifist();
     }

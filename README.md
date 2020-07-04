@@ -10,6 +10,10 @@ Viewer and player for chess games and bots using SDL2. Still very WIP.
 * **WhiteSquares**: Ranks moves according to how many pieces fall onto white squares and prefers these. Leads to interesting aesthetic patterns.
 * **BlackSquares**: Like WhiteSqaures, but for black squares (obviously).
 * **MinimizeOpponentMoves**: Makes plays in order to minimize the number of counter moves the opponent has. Is actually quite decent at chess, since usually ends up checkmating.
+* **Defensive**: Plays in order to minimize the number of its own pieces being captured and under attack.
+* **Offensive**: Plays in order to maximize the number of opponent pieces being captured and under attack.
+* **Suicidal**: Opposite of Defensive; plays in order to maximize the number of its own pieces being captures and under attack.
+* **Pacifist**: Opposite of Offensive; plays in order to minimize the number of opponent pieces being captured and under attack.
 
 ## Features
 * Generates all legal moves for all pieces, allowing bots to rank them.
