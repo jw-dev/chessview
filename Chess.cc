@@ -13,10 +13,47 @@ Chess::Chess (Player *white, Player *black)
     createDefaultBoard ();
     }
 
+
+auto Chess::undo () -> void
+    {
+    if (m_prevStates.empty())
+        return; // Nothing to undo
+
+    // Save current state in next states
+    m_nextStates.push( snapshot() );
+
+    const GameState &state = m_prevStates.top(); // Make sure to be done with state& before we pop()!
+    loadState ( state );
+    m_prevStates.pop();
+    }
+
+auto Chess::loadState (const GameState& state) -> void 
+    {
+    m_board.setState (state.boardState);
+    m_whiteMove = state.whiteMove;
+    winner = state.winner;
+    endResult = state.endResult;
+    }
+
+auto Chess::snapshot () -> GameState
+    {
+    return { m_board.getState(), winner, endResult, m_whiteMove };
+    }
+
 auto Chess::tick() -> Result 
     {
     if (endResult == None)
         {
+        m_prevStates.push ( snapshot() );
+
+        if (!m_nextStates.empty())
+            {
+            const GameState &state = m_nextStates.top();
+            loadState ( state );
+            m_nextStates.pop();
+            return endResult;
+            }
+
         u8 player = m_whiteMove ? WHITE: BLACK; 
         if (m_board.isCheckmate (player)) 
             {

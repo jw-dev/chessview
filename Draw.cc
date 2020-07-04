@@ -51,7 +51,7 @@ Draw::Draw (const Board& board, const char * title, unsigned width, unsigned hei
             }
     }
 
-auto Draw::draw () -> bool 
+auto Draw::draw () -> void
     {
     // Clear window 
     SDL_SetRenderDrawColor (m_renderer, 255, 255, 255, 255);
@@ -73,17 +73,6 @@ auto Draw::draw () -> bool
                 colorMult += 0.2;
             return SDL_Color { 0x77 * colorMult, 0x66 * colorMult, 0x70 * colorMult, 255 }; 
             };
-
-    // Get all actions 
-    SDL_Event ev; 
-    while (SDL_PollEvent(&ev)) 
-        {
-        switch (ev.type) 
-            {
-            case SDL_QUIT:
-                return true;
-            }
-        }
 
     for (u8 x = 0; x < Board::GRID_LENGTH; ++x)
         for (u8 y = 0; y < Board::GRID_LENGTH; ++y)
@@ -107,5 +96,4 @@ auto Draw::draw () -> bool
             }
     SDL_RenderPresent (m_renderer);
     SDL_Delay (50);
-    return false;
     }

@@ -13,7 +13,7 @@ struct Draw
 
     Draw (const Board& board, const char * title, unsigned width, unsigned height); 
     // Draw (Game *game, const char *title, unsigned width, unsigned height);
-    auto draw () -> bool;
+    auto draw () -> void;
     // auto handleEvent(SDL_Event *e) -> void;
 private: 
     unsigned m_width, m_height, m_tileSize;

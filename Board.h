@@ -25,6 +25,13 @@ enum PieceBits
     WHITE = 8, 
     };
 
+// Structure used for preserving board state via getState() and setState().
+struct BoardState 
+    {
+    std::vector <u32> pieces;
+    u32 whiteStaleMoves = 0, blackStaleMoves = 0;
+    };
+
 // Holds board state. 
 // Board state is held in m_pieces. 
 struct Board 
@@ -40,6 +47,12 @@ struct Board
 
     Board ();
     Board (const Board& other) = delete;
+
+    // Returns the current board state.
+    auto getState () const -> BoardState;
+
+    // Sets the current board state.
+    auto setState (const BoardState& state) -> void;
 
     // Returns the piece encoded as a u8 at the specified column and row.
     // Bitwise magic with PieceBits is required to extract information.
@@ -79,6 +92,12 @@ struct Board
 
     // Returns whether the specified player is in a stalemate situation (Zero moves, stale moves, or insufficient material for checkmate).
     auto isStalemate (u8 color) -> bool;
+
+    // Returns whether the tile is attacked by an opponent's piece. 
+    // Note we don't specify a player here; the piece at the target is taken as the defender.
+    auto isAttacked (u8 column, u8 row) const -> bool;
+
+    
 
     // Try a move and then revert the board state.
     // The function f() is a user-specified function to check the board state.
@@ -122,10 +141,6 @@ protected:
 
     // Returns whether the specified move would leave the player in check. This is an illegal move.
     auto isMoveIntoCheck (const Move& move) -> bool;
-
-    // Returns whether the tile is attacked by an opponent's piece. 
-    // Note we don't specify a player here; the piece at the target is taken as the defender.
-    auto isAttacked (u8 column, u8 row) const -> bool;
     };
 
 

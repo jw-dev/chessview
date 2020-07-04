@@ -8,6 +8,20 @@ Board::Board ()
     m_pieces.shrink_to_fit ();
     }
 
+// Returns the current board state.
+auto Board::getState () const -> BoardState
+    {
+    return { m_pieces, m_whiteStaleMoves, m_blackStaleMoves };
+    }
+
+// Sets the current board state.
+auto Board::setState (const BoardState& state) -> void
+    {
+    m_pieces = state.pieces;
+    m_whiteStaleMoves = state.whiteStaleMoves;
+    m_blackStaleMoves = state.blackStaleMoves;
+    }
+
 auto Board::pieceAt (u8 column, u8 row) const -> u8
     {
     // If we have a black pawn at column 1, then the row will look like 0b[...]00010000.
