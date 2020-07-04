@@ -27,7 +27,7 @@ Viewer and player for chess games and bots using SDL2. Still very WIP.
 * Threefold repetition stalemate [rule](https://en.wikipedia.org/wiki/Threefold_repetition).
 * Support for PGN string imports (to watch existing games).
 * Player interaction (e.g. player vs. bot).
-* Ability to specify which bots to play on the command line.
+* ~~Ability to specify which bots to play on the command line.~~
 * Competition between bots.
 * Recording of games to files (probably in PGN notation).
 

@@ -1,13 +1,45 @@
-
+#include <map>
+#include <iostream>
+#include <functional>
 #include "Chess.h"
 #include "Draw.h"
 #include "Player.h"
 
-#include <stack>
+static const std::map <std::string, std::function<Player*()>>
+    players = {
+                { "random",         makeRandom },
+                { "whitesquares",   makeWhiteSquares },
+                { "blacksquares",   makeBlackSquares },
+                { "minimize",       makeMinimizeOpponentMoves },
+                { "defensive",      makeDefensive },
+                { "offensive",      makeOffensive },
+                { "suicidal",       makeSuicidal },
+                { "pacifist",       makePacifist },
+              };
 
-int main (void) 
+auto makePlayer (const std::string& arg) -> Player* 
     {
-    Chess chessGame ( makeDefensive(), makeDefensive() );
+    if ( players.find (arg) != players.end() )
+        {
+        return players.at (arg) ();
+        }
+    else 
+        {
+        std::cerr << "Unknown player: " << arg << " (assuming random)" << std::endl;
+        return makeRandom ();
+        }
+    }
+
+int main (int argc, char ** argv)
+    {
+    std::vector<std::string> args (argv, argv + argc);
+    if (args.size() == 1) 
+        {
+        std::cerr << "usage: " << args[0] << " white black" << std::endl;
+        return EXIT_FAILURE;
+        }
+
+    Chess chessGame ( makePlayer(args.at(1)), makePlayer(args.at(2)) );
     Draw draw { chessGame.board(), "chessview", 400, 400 };
 
     bool play = false;
