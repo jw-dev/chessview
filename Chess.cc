@@ -68,9 +68,12 @@ auto Chess::tick() -> Result
             {
             Player* p = m_whiteMove ? m_players[WHITE]: m_players[BLACK]; 
             Move move = p->getMove (m_board);
-            m_board.doMove (move);
-            m_whiteMove = !m_whiteMove;
+            bool isMoveLegal = m_board.doMove (move);
+            
+            if (!isMoveLegal)
+                throw std::runtime_error ("player attempted an illegal move");
             }
+        m_whiteMove = !m_whiteMove;
         }
     return endResult;
     }

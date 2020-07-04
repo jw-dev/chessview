@@ -45,7 +45,7 @@ struct Chess
 protected: 
     Board m_board;
     std::map <u8, Player*> m_players;
-    bool m_whiteMove;
+    bool m_whiteMove = true;
 
     std::stack <GameState> m_prevStates, m_nextStates;
 
