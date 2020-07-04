@@ -12,7 +12,7 @@ T getRandom (const std::vector<T>& vec)
     {
     static std::random_device device; 
     static std::mt19937 mt { device () };
-    std::uniform_int_distribution<> distrib (0, vec.size());
+    std::uniform_int_distribution<> distrib (0, vec.size() - 1);
     return vec [distrib(mt)];
     }
 
