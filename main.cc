@@ -15,6 +15,10 @@ static const std::map <std::string, std::function<Player*()>>
                 { "offensive",      makeOffensive },
                 { "suicidal",       makeSuicidal },
                 { "pacifist",       makePacifist },
+                { "clearpath",      makeClearPath },
+                { "centre",         makeCentre },
+                { "aggressive",     makeAggresive },
+                { "passive",        makePassive },
               };
 
 auto makePlayer (const std::string& arg) -> Player* 

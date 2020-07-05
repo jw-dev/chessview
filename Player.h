@@ -3,6 +3,7 @@
 
 #include <random>
 #include <numeric>
+#include <functional>
 #include "Board.h"
 #include "Move.h"
 
@@ -34,6 +35,15 @@ struct EvalPlayer: public Player
     virtual auto getMove (Board& board) const -> Move override;
     };
 
+// Pure interface for a player who wants to only look at the individual moves. 
+// This player has no idea of the board state. Useful for when we want to prefer certain positions, rather than boards.
+struct EvalMovesPlayer: public Player 
+    {
+    virtual auto evalMove (const Move& move) const -> u32 = 0;
+    virtual auto getMove (Board& board) const -> Move override;
+    };
+
+
 struct RandomPlayer: Player 
     {
     auto getMove (Board&) const -> Move override;
@@ -53,7 +63,6 @@ struct MinimizeOpponentMoves: EvalPlayer
     {
     auto evalBoard (Board& board) const -> u32 override;
     };
-
 
 // A player that minimizes the number of own pieces that are under attack.
 struct Defensive: EvalPlayer 
@@ -79,6 +88,30 @@ struct Pacifist: EvalPlayer
     auto evalBoard (Board& board) const -> u32 override;
     };
 
+// A player that tries to move all of its pieces AWAY from the centre of the board, to the edges.
+struct ClearPath: EvalMovesPlayer 
+    {
+    auto evalMove (const Move& move) const -> u32 override;
+    };
+
+// A player that tries to move all of its piece TOWARDS the centre of the board.
+struct Centre: EvalMovesPlayer 
+    {
+    auto evalMove (const Move& move) const -> u32 override;
+    };
+
+// A player that tries to move all of its piece TOWARDS the end of the board.
+struct Aggresive: EvalMovesPlayer 
+    {
+    auto evalMove (const Move& move) const -> u32 override;
+    };
+
+// A player that tries to move all of its piece AWAY from the end of the board.
+struct Passive: EvalMovesPlayer 
+    {
+    auto evalMove (const Move& move) const -> u32 override;
+    };
+
 
 
 
@@ -90,7 +123,11 @@ Player* makeDefensive();
 Player* makeOffensive();
 Player* makeSuicidal();
 Player* makePacifist();
-
+Player* makeCheckmate();
+Player* makeClearPath();
+Player* makeCentre();
+Player* makeAggresive();
+Player* makePassive();
 
 // Defensive (move pieces out of danger)
 // Offensive (capture as much as possible)

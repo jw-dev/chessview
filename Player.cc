@@ -33,6 +33,29 @@ auto EvalPlayer::getMove (Board& board) const -> Move
         }
     }
 
+auto EvalMovesPlayer::getMove (Board& board) const -> Move 
+    {
+    const std::vector<Move> moves = board.getMoves (color);
+    std::vector<Move> selected;
+    u32 maxScore = 0;
+    for (const auto& move: moves)
+        {
+        u32 score = evalMove (move);
+        if (score >= maxScore) 
+            {
+            if (score > maxScore) 
+                {
+                maxScore = score;
+                selected.clear();
+                }
+            selected.push_back(move);
+            }
+        }
+    return getRandom (selected);
+    }
+
+
+
 // Random 
 
 auto RandomPlayer::getMove (Board& board) const -> Move 
@@ -162,6 +185,30 @@ auto Offensive::evalBoard (Board& board) const -> u32
     return (UINT32_MAX - (100 * pieces)) + piecesAttacked;
     }
 
+auto ClearPath::evalMove (const Move& move) const -> u32
+    {
+    static const std::vector <u32> penalty = { 0, 1, 2, 3, 3, 2, 1, 0 };
+    return UINT32_MAX - penalty [move.toCol];
+    }
+
+auto Centre::evalMove (const Move& move) const -> u32
+    {
+    static const std::vector <u32> penalty = { 3, 2, 1, 0, 0, 1, 2, 3 };
+    return UINT32_MAX - penalty [move.toCol];
+    }
+
+auto Aggresive::evalMove (const Move& move) const -> u32
+    {
+    return (color == WHITE)? Board::GRID_LENGTH - move.toRow: move.toRow; 
+    }
+
+auto Passive::evalMove (const Move& move) const -> u32
+    {
+    return (color == BLACK)? Board::GRID_LENGTH - move.toRow: move.toRow; 
+    }
+
+
+
 Player* makeRandom () 
     {
     return new RandomPlayer ();
@@ -200,4 +247,24 @@ Player* makeSuicidal()
 Player* makePacifist()
     {
     return new Pacifist();
+    }
+
+Player* makeClearPath()
+    {
+    return new ClearPath();
+    }
+
+Player* makeCentre() 
+    {
+    return new Centre();
+    }
+
+Player* makeAggresive()
+    {
+    return new Aggresive();
+    }
+
+Player* makePassive()
+    {
+    return new Passive();
     }
