@@ -185,26 +185,68 @@ auto Offensive::evalBoard (Board& board) const -> u32
     return (UINT32_MAX - (100 * pieces)) + piecesAttacked;
     }
 
-auto ClearPath::evalMove (const Move& move) const -> u32
+auto ClearPath::evalBoard (Board& board) const -> u32
     {
-    static const std::vector <u32> penalty = { 0, 1, 2, 3, 3, 2, 1, 0 };
-    return UINT32_MAX - penalty [move.toCol];
+    static const std::vector <u32> penalty = { 0, 2, 4, 8, 8, 4, 2, 0 };
+    u32 sum = 0;
+    for (int c = 0; c < Board::GRID_LENGTH; ++c)
+        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
+            {
+            u8 piece = board.pieceAt (c, r);
+            if (piece && (piece & Board::COLOR_MASK) == color) 
+                {
+                sum += penalty [c];
+                }
+            }
+    return UINT32_MAX - sum;
     }
 
-auto Centre::evalMove (const Move& move) const -> u32
+auto Centre::evalBoard (Board& board) const -> u32
     {
-    static const std::vector <u32> penalty = { 3, 2, 1, 0, 0, 1, 2, 3 };
-    return UINT32_MAX - penalty [move.toCol];
+    static const std::vector <u32> bonus = { 0, 2, 4, 8, 8, 4, 2, 0 };
+    u32 sum = 0;
+    for (int c = 0; c < Board::GRID_LENGTH; ++c)
+        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
+            {
+            u8 piece = board.pieceAt (c, r);
+            if (piece && (piece & Board::COLOR_MASK) == color) 
+                {
+                sum += bonus [c];
+                }
+            }
+    return sum;
     }
 
-auto Aggresive::evalMove (const Move& move) const -> u32
+auto Aggresive::evalBoard (Board& board) const -> u32
     {
-    return (color == WHITE)? Board::GRID_LENGTH - move.toRow: move.toRow; 
+    static const std::vector <u32> bonus = { 0, 2, 4, 6, 8, 10, 12, 14 };
+    u32 sum = 0;
+    for (int c = 0; c < Board::GRID_LENGTH; ++c)
+        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
+            {
+            u8 piece = board.pieceAt (c, r);
+            if (piece && (piece & Board::COLOR_MASK) == color) 
+                {
+                sum += bonus [(color == BLACK? Board::GRID_LENGTH-r: r)];
+                }
+            }
+    return sum;
     }
 
-auto Passive::evalMove (const Move& move) const -> u32
+auto Passive::evalBoard (Board& board) const -> u32
     {
-    return (color == BLACK)? Board::GRID_LENGTH - move.toRow: move.toRow; 
+    static const std::vector <u32> penalty = { 0, 2, 4, 6, 8, 10, 12, 14 };
+    u32 sum = 0;
+    for (int c = 0; c < Board::GRID_LENGTH; ++c)
+        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
+            {
+            u8 piece = board.pieceAt (c, r);
+            if (piece && (piece & Board::COLOR_MASK) == color) 
+                {
+                sum += penalty [(color == BLACK? Board::GRID_LENGTH-r: r)];
+                }
+            }
+    return UINT32_MAX - sum;
     }
 
 

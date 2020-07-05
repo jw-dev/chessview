@@ -85,28 +85,27 @@ struct Pacifist: EvalPlayer
     };
 
 // A player that tries to move all of its pieces AWAY from the centre of the board, to the edges.
-struct ClearPath: EvalMovesPlayer 
+struct ClearPath: EvalPlayer 
     {
-    auto evalMove (const Move& move) const -> u32 override;
+    auto evalBoard (Board& board) const -> u32 override;
     };
 
 // A player that tries to move all of its piece TOWARDS the centre of the board.
-struct Centre: EvalMovesPlayer 
+struct Centre: EvalPlayer 
     {
-    auto evalMove (const Move& move) const -> u32 override;
+    auto evalBoard (Board& board) const -> u32 override;
     };
 
-// A player that tries to move all of its piece TOWARDS the end of the board.
-struct Aggresive: EvalMovesPlayer 
+struct Aggresive: EvalPlayer 
     {
-    auto evalMove (const Move& move) const -> u32 override;
+    auto evalBoard (Board& board) const -> u32 override;
     };
 
-// A player that tries to move all of its piece AWAY from the end of the board.
-struct Passive: EvalMovesPlayer 
+struct Passive: EvalPlayer 
     {
-    auto evalMove (const Move& move) const -> u32 override;
+    auto evalBoard (Board& board) const -> u32 override;
     };
+
 
 
 
