@@ -83,6 +83,8 @@ auto Board::isMoveLegal (const Move& move) -> bool
         return false;
     else if ((piece & COLOR_MASK) != move.color) // Piece at source cannot be moved by the provided player
         return false;
+    else if ((piece & TYPE_MASK) != PAWN && move.promotion) // Promoting a non pawn
+        return false;
 
     // Check target
     u8 target = pieceAt (move.toCol, move.toRow); 
@@ -177,6 +179,15 @@ auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
                 return false;
             else if (color == BLACK && dir == 1) // Same for black
                 return false;
+
+            if (move.promotion) // Attempting to promote a pawn - is it legal?
+                {
+                if (move.toRow != ((color == WHITE) ? GRID_LENGTH - 1: 0))
+                    return false;
+                const u8 pro = move.promotion & TYPE_MASK;
+                if (pro != KNIGHT && pro != QUEEN && pro != BISHOP && pro != ROOK)
+                    return false;
+                }
 
             if (dcol) // Attacking
                 {
@@ -298,18 +309,19 @@ auto Board::forceDoMove(const Move & move) -> void
     else    
         moves = 0;
 
-    // Do piece changes
-    setPiece (src, move.toCol, move.toRow);
-    removePiece (move.fromCol, move.fromRow);
 
     // Do promotion
-    if ((src & TYPE_MASK) == PAWN) 
+    if ((src & TYPE_MASK) == PAWN && move.promotion) 
         {
-        u8 color = src & COLOR_MASK;
-        bool toPromote = (color == WHITE && move.toRow == GRID_LENGTH - 1) || move.toRow == 0;
-        if (toPromote) 
-            setPiece (QUEEN | color, move.toCol, move.toRow); // FIXME - automatic promote to Queen should be instead encoded in Move
+        const u8 newType = move.promotion & TYPE_MASK;
+        const u8 color = src & COLOR_MASK;
+        setPiece (newType | color, move.toCol, move.toRow);
         }
+    else 
+        {
+        setPiece (src, move.toCol, move.toRow);
+        }
+    removePiece (move.fromCol, move.fromRow);
     }
 
 auto Board::hasZeroMoves (u8 color) -> bool
@@ -331,9 +343,9 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
     // Adds a move but only if it is legal.
     // Required because for loops below will try to add lots of out-of-bounds and weird, illegal moves.
     auto tryAddMove = 
-        [&] (u8 fromColumn, u8 toColumn, u8 fromRow, u8 toRow) 
+        [&] (u8 fromColumn, u8 toColumn, u8 fromRow, u8 toRow, u8 promote=0U) 
             {
-            const Move move { fromColumn, toColumn, fromRow, toRow, color };
+            const Move move { fromColumn, toColumn, fromRow, toRow, color, promote };
             if ( isMoveLegal (move) )
                 moves.push_back (move);
             };
@@ -377,11 +389,24 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                         {
                         // All possible pawn moves; +1 row, +2 rows, +1 row +1 column (for capture).
                         u8 color = piece & COLOR_MASK;
-                        int mult = color == WHITE ? 1: -1; 
-                        tryAddMove (column, column,     row, row + mult); 
-                        tryAddMove (column, column,     row, row + mult * 2); 
-                        tryAddMove (column, column - 1, row, row + mult);
-                        tryAddMove (column, column + 1, row, row + mult);
+                        for (int dc: {-1, 0, 1})
+                            for (int dr: {1, 2})
+                                {
+                                if (dc && dr == 2) continue;
+
+                                // Check for promotion 
+                                const u8 newRow = (color == WHITE) ? row + dr: row - dr;
+                                const bool isPromote = (newRow == GRID_LENGTH - 1) || newRow == 0; // Black pawns can't ever get to rank 8 and white pawns can't get to rank 0
+                                if (isPromote) 
+                                    {
+                                    for (u8 type: {QUEEN, KNIGHT, ROOK, BISHOP})
+                                        tryAddMove (column, column + dc, row, newRow, type);
+                                    }
+                                else 
+                                    {
+                                    tryAddMove (column, column + dc, row, newRow);    
+                                    }
+                                }
                         break;
                         }
                     case QUEEN:

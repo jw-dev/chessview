@@ -40,7 +40,7 @@ To run a game, specify which bots to play for both white and black sides:
 ## Planned
 * Many more dumb but interesting bots.
 * [Castling](https://en.wikipedia.org/wiki/Castling) and [en passant](https://en.wikipedia.org/wiki/En_passant) as available legal moves.
-* Pawn promotion. Pawns currently automatically promote to Queens.
+* ~~Pawn promotion. Pawns currently automatically promote to Queens.~~
 * Threefold repetition stalemate [rule](https://en.wikipedia.org/wiki/Threefold_repetition).
 * Support for PGN string imports (to watch existing games).
 * Player interaction (e.g. player vs. bot).

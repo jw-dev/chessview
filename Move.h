@@ -10,6 +10,7 @@ struct Move
     u8 fromCol, toCol;
     u8 fromRow, toRow;
     u8 color;
+    u8 promotion = 0U;
     };
 
 #endif
