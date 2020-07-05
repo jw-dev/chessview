@@ -340,20 +340,22 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
     {
     std::vector <Move> moves; 
 
-    // Adds a move but only if it is legal.
-    // Required because for loops below will try to add lots of out-of-bounds and weird, illegal moves.
-    auto tryAddMove = 
-        [&] (u8 fromColumn, u8 toColumn, u8 fromRow, u8 toRow, u8 promote=0U) 
-            {
-            const Move move { fromColumn, toColumn, fromRow, toRow, color, promote };
-            if ( isMoveLegal (move) )
-                moves.push_back (move);
-            };
 
     // Loop over all squares and find our pieces.
-    for (int row = 0; row < GRID_LENGTH; ++row) 
-        for (int column = 0; column < GRID_LENGTH; ++column) 
+    for (u8 row = 0; row < GRID_LENGTH; ++row) 
+        for (u8 column = 0; column < GRID_LENGTH; ++column) 
             {
+            // Adds a move but only if it is legal.
+            // Required because for loops below will try to add lots of out-of-bounds and weird, illegal moves.
+            auto tryAddMove = 
+                [&column, &row, &moves, &color, this] 
+                    (u8 toCol, u8 toRow, u8 promote=0U) 
+                        {
+                        const Move move { column, toCol, row, toRow, color, promote };
+                        if ( isMoveLegal (move) )
+                            moves.push_back (move);
+                        };
+
             const u8 piece = pieceAt (column, row);
             if ((piece & COLOR_MASK) == color) 
                 {
@@ -365,7 +367,7 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                         for (int c: {-1, 1})
                             for (int r: {-1, 1})
                                 for (int col = column + c, rw = row + r; inBounds (col, rw); col += c, rw += r)
-                                    tryAddMove (column, col, row, rw);
+                                    tryAddMove (col, rw);
                         break;
                         }
                     case KING:
@@ -373,7 +375,7 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                         // For King, we just need to try and move to all 8 surrounding tiles
                         for (int c: {-1, 0, 1})
                             for (int r: {-1, 0, 1})
-                                tryAddMove (column, column + c, row, row + r);
+                                tryAddMove (column + c, row + r);
                         break;
                         }
                     case KNIGHT:
@@ -382,7 +384,7 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                         for (int c: {-2, -1, 1, 2}) 
                             for (int r: {-2, -1, 1, 2}) 
                                 if ( std::abs (c) != std::abs(r) )
-                                    tryAddMove (column, column + c, row, row + r);
+                                    tryAddMove (column + c, row + r);
                         break;
                         }
                     case PAWN:
@@ -400,11 +402,11 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                                 if (isPromote) 
                                     {
                                     for (u8 type: {QUEEN, KNIGHT, ROOK, BISHOP})
-                                        tryAddMove (column, column + dc, row, newRow, type);
+                                        tryAddMove (column + dc, newRow, type);
                                     }
                                 else 
                                     {
-                                    tryAddMove (column, column + dc, row, newRow);    
+                                    tryAddMove (column + dc, newRow);    
                                     }
                                 }
                         break;
@@ -416,7 +418,7 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                             for (int r: {-1, 0, 1})
                                 if (c || r) 
                                     for (int col = column + c, rw = row + r; inBounds(col, rw); col += c, rw += r)
-                                        tryAddMove (column, col, row, rw);
+                                        tryAddMove (col, rw);
                         }
                     case ROOK:
                         {
@@ -424,9 +426,9 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                         for (int mult: {-1, 1})
                             {
                             for (int col = column + mult; inBounds(col, row); col += mult)
-                                tryAddMove (column, col, row, row); 
+                                tryAddMove (col, row); 
                             for (int rw = row + mult; inBounds(column, rw); rw += mult)
-                                tryAddMove (column, column, row, rw);
+                                tryAddMove (column, rw);
                             }
                         }
                     }
