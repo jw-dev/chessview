@@ -2,9 +2,10 @@
 
 
 Board::Board () 
-  : m_pieces { GRID_LENGTH }
+  : m_pieces { }
     {
     // Pack vector storage.
+    m_pieces.resize (GRID_LENGTH);
     m_pieces.shrink_to_fit ();
     }
 
