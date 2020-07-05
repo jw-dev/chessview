@@ -1,9 +1,24 @@
 # chessview
 Viewer and player for chess games and bots using SDL2. Still very WIP.
 
+## Examples with Bots
 
-<img src="Img/sample.gif" height=50% width=50%>
+### Suicidal vs. Offensive
+Here, white continuously offers up its pieces for capture, and black gladly accepts.
 
+<img height=25% width=25% src="Img/suicidal_offensive.gif"/>
+
+### WhiteSquares vs. BlackSquares
+White tries to put its pieces on white squares, and black squares for Black, creating some aesthetic patterns.
+
+<img height=25% width=25% src="Img/whitesquares_blacksquares.gif"/>
+
+### Centre vs ClearPath
+White tries to move its pieces as close to the centre as possible; black tries to move them to the edges. Both players succeed in completely missing the point of chess.
+
+<img height=25% width=25% src="Img/centre_clearpath.gif"/>
+
+---
 
 ## Usage 
 
