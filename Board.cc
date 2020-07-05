@@ -2,9 +2,9 @@
 
 
 Board::Board () 
+  : m_pieces { GRID_LENGTH }
     {
     // Pack vector storage.
-    m_pieces.resize (GRID_LENGTH);
     m_pieces.shrink_to_fit ();
     }
 
@@ -174,7 +174,7 @@ auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
             // Pawns can only move diagonally when capturing, and only 2 tiles from the initial square.
 
             const u8 color = piece & COLOR_MASK; 
-            const u8 dir = getDir (move.fromRow, move.toRow); 
+            const int dir = getDir (move.fromRow, move.toRow); 
             if (color == WHITE && dir == -1) // White moving backwards
                 return false;
             else if (color == BLACK && dir == 1) // Same for black
@@ -419,6 +419,7 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                                 if (c || r) 
                                     for (int col = column + c, rw = row + r; inBounds(col, rw); col += c, rw += r)
                                         tryAddMove (col, rw);
+                        break;
                         }
                     case ROOK:
                         {
@@ -430,6 +431,7 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                             for (int rw = row + mult; inBounds(column, rw); rw += mult)
                                 tryAddMove (column, rw);
                             }
+                        break;
                         }
                     }
                 // Break out if we've hit the move limit.

@@ -2,6 +2,10 @@
 
 
 Chess::Chess (Player *white, Player *black)
+  : m_board {},
+    m_players {},
+    m_prevStates {},
+    m_nextStates {}
     {
     white->setColor (WHITE);
     m_players [WHITE] = white;

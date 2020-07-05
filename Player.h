@@ -17,22 +17,18 @@ T getRandom (const std::vector<T>& vec)
     return vec [distrib(mt)];
     }
 
-struct DetailedMove 
-    {
-    Move move; 
-    };
-
 struct Player 
     {
-    u8 color;
+    u8 color = 0U;
+    virtual ~Player() {}
     virtual auto getMove (Board&) const -> Move = 0;
-    inline virtual auto setColor (u8 col) -> void { color = col; };
+    inline auto setColor (u8 col) -> void { color = col; };
     };
 
 struct EvalPlayer: public Player 
     {
     virtual auto evalBoard (Board& board) const -> u32 = 0;
-    virtual auto getMove (Board& board) const -> Move override;
+    auto getMove (Board& board) const -> Move override;
     };
 
 // Pure interface for a player who wants to only look at the individual moves. 
@@ -40,7 +36,7 @@ struct EvalPlayer: public Player
 struct EvalMovesPlayer: public Player 
     {
     virtual auto evalMove (const Move& move) const -> u32 = 0;
-    virtual auto getMove (Board& board) const -> Move override;
+    auto getMove (Board& board) const -> Move override;
     };
 
 

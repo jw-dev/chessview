@@ -2,10 +2,11 @@
 
 
 Draw::Draw (const Board& board, const char * title, unsigned width, unsigned height)
-: m_board (board),
-  m_width (width),
-  m_height (height),
-  m_tileSize (width / board.GRID_LENGTH)
+: m_tileSize { width / board.GRID_LENGTH },
+  m_window { nullptr },
+  m_renderer { nullptr },
+  m_board { board },
+  m_pieceTextures {}
     {
     SDL_Init(SDL_INIT_VIDEO);
     IMG_Init(IMG_INIT_PNG);
@@ -60,8 +61,10 @@ auto Draw::draw () -> void
     const auto getTileRect =
         [&] (u8 x, u8 y) 
             {
+            static const int tileSize = static_cast<int>(m_tileSize);
+            int drawX = static_cast<int>(x);
             int drawY = Board::GRID_LENGTH - 1 - y;
-            return SDL_Rect { x * m_tileSize, drawY * m_tileSize, m_tileSize, m_tileSize };
+            return SDL_Rect { drawX * tileSize, drawY * tileSize, tileSize, tileSize };
             };
 
     const auto getTileColor = 
@@ -71,7 +74,7 @@ auto Draw::draw () -> void
             const int index = x + y;
             if (index & 1) 
                 colorMult += 0.2;
-            return SDL_Color { 0x77 * colorMult, 0x66 * colorMult, 0x70 * colorMult, 255 }; 
+            return SDL_Color { static_cast<u8>(0x77 * colorMult), static_cast<u8>(0x66 * colorMult), static_cast<u8>(0x70 * colorMult), 255 }; 
             };
 
     for (u8 x = 0; x < Board::GRID_LENGTH; ++x)
