@@ -1,6 +1,8 @@
 #include <map>
 #include <iostream>
 #include <functional>
+#include <algorithm>
+#include <chrono>
 #include "Chess.h"
 #include "Draw.h"
 #include "Player.h"
@@ -34,10 +36,45 @@ auto makePlayer (const std::string& arg) -> Player*
         }
     }
 
+auto benchmark () -> void 
+    {
+    using namespace std::chrono;
+    std::vector <float> all; 
+
+    auto bench = 
+        [] (const std::function<void()> &f)
+            {
+            auto start = high_resolution_clock::now();
+            f();
+            return ((float) duration_cast<microseconds> (high_resolution_clock::now() - start).count()) / 1000.0f;
+            };
+
+    for (int i = 0; i < 1000; ++i) 
+        {
+        all.push_back ( bench ([]  
+            {
+            Chess chessGame ( makeRandom(), makeRandom() );
+            while (chessGame.endResult == None) 
+                chessGame.tick();
+            }));
+        }
+
+    auto sum = std::accumulate ( all.begin(), all.end(), 0.0f);
+    std::cout << "max: " << (*std::max_element ( all.begin(), all.end() )) << "ms" << std::endl
+              << "min: " << (*std::min_element ( all.begin(), all.end() )) << "ms" << std::endl
+              << "avg: " << sum / ((float)all.size()) << "ms" << std::endl
+              << "tot: " << sum << "ms" << std::endl;
+    }
+
 int main (int argc, char ** argv)
     {
     std::vector<std::string> args (argv, argv + argc);
-    if (args.size() == 1) 
+    if (std::find(args.begin(), args.end(), "-b") != args.end())
+        {
+        benchmark();
+        return EXIT_SUCCESS;
+        }
+    else if (args.size() == 1) 
         {
         std::cerr << "usage: " << args[0] << " white black" << std::endl;
         return EXIT_FAILURE;
