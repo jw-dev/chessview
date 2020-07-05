@@ -54,6 +54,42 @@ auto EvalMovesPlayer::getMove (Board& board) const -> Move
     return getRandom (selected);
     }
 
+auto EvalPiecePlayer::getMove (Board& board) const -> Move 
+    {
+    const std::vector<Move> moves = board.getMoves ( color );
+    std::vector <Move> selected;
+    u32 maxScore = 0;
+    for (const auto& move: moves)
+        {
+        u32 score = board.tryMove(move, 
+            [&board, &move, &selected, &maxScore, this] () -> u32
+                {
+                u32 thisScore = 0;
+                for (int c = 0; c < Board::GRID_LENGTH; ++c) 
+                    for (int r = 0; r < Board::GRID_LENGTH; ++r)
+                        {
+                        u8 piece = board.pieceAt (c, r);
+                        if (piece && (piece & Board::COLOR_MASK) == color) 
+                            {
+                            thisScore += evalPiece (piece, c, r);
+                            }
+                        }
+                return thisScore;
+                });
+        if (score >= maxScore) 
+            {
+            if (score > maxScore) 
+                {
+                maxScore = score;
+                selected.clear();
+                }
+            selected.push_back (move);
+            }
+        }
+    return getRandom (selected);
+    }
+
+
 
 
 // Random 
@@ -185,70 +221,32 @@ auto Offensive::evalBoard (Board& board) const -> u32
     return (UINT32_MAX - (100 * pieces)) + piecesAttacked;
     }
 
-auto ClearPath::evalBoard (Board& board) const -> u32
+
+
+
+auto ClearPath::evalPiece (u8, u8 column, u8) const -> u8 
     {
-    static const std::vector <u32> penalty = { 0, 2, 4, 8, 8, 4, 2, 0 };
-    u32 sum = 0;
-    for (int c = 0; c < Board::GRID_LENGTH; ++c)
-        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
-            {
-            u8 piece = board.pieceAt (c, r);
-            if (piece && (piece & Board::COLOR_MASK) == color) 
-                {
-                sum += penalty [c];
-                }
-            }
-    return UINT32_MAX - sum;
+    static const std::vector <u32> bonus = { 8, 4, 2, 0, 0, 2, 4, 8 };
+    return bonus [column];
     }
 
-auto Centre::evalBoard (Board& board) const -> u32
+auto Centre::evalPiece (u8, u8 column, u8) const -> u8 
     {
-    static const std::vector <u32> bonus = { 0, 2, 4, 8, 8, 4, 2, 0 };
-    u32 sum = 0;
-    for (int c = 0; c < Board::GRID_LENGTH; ++c)
-        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
-            {
-            u8 piece = board.pieceAt (c, r);
-            if (piece && (piece & Board::COLOR_MASK) == color) 
-                {
-                sum += bonus [c];
-                }
-            }
-    return sum;
+    static const std::vector <u32> bonus = { 0, 1, 2, 3, 3, 2, 1, 0 };
+    return bonus [column];
     }
 
-auto Aggresive::evalBoard (Board& board) const -> u32
+auto Aggresive::evalPiece (u8, u8, u8 row) const -> u8 
     {
-    static const std::vector <u32> bonus = { 0, 2, 4, 6, 8, 10, 12, 14 };
-    u32 sum = 0;
-    for (int c = 0; c < Board::GRID_LENGTH; ++c)
-        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
-            {
-            u8 piece = board.pieceAt (c, r);
-            if (piece && (piece & Board::COLOR_MASK) == color) 
-                {
-                sum += bonus [(color == BLACK? Board::GRID_LENGTH-r: r)];
-                }
-            }
-    return sum;
+    static const std::vector <u32> bonus = { 0, 2, 4, 8, 16, 32, 64, 128 };
+    return bonus [row];
     }
 
-auto Passive::evalBoard (Board& board) const -> u32
+auto Passive::evalPiece (u8, u8, u8 row) const -> u8 
     {
-    static const std::vector <u32> penalty = { 0, 2, 4, 6, 8, 10, 12, 14 };
-    u32 sum = 0;
-    for (int c = 0; c < Board::GRID_LENGTH; ++c)
-        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
-            {
-            u8 piece = board.pieceAt (c, r);
-            if (piece && (piece & Board::COLOR_MASK) == color) 
-                {
-                sum += penalty [(color == BLACK? Board::GRID_LENGTH-r: r)];
-                }
-            }
-    return UINT32_MAX - sum;
+    static const std::vector <u32> bonus = { 128, 64, 32, 16, 8, 4, 2, 1 };
+    return bonus [row];
     }
-
 
 
 Player* makeRandom () 

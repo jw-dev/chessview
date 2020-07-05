@@ -39,6 +39,14 @@ struct EvalMovesPlayer: public Player
     auto getMove (Board& board) const -> Move override;
     };
 
+// Interface for a player who wants to rank the position and type of pieces.
+// Player has no idea of the board state or even what move is played to get the piece to that position.
+struct EvalPiecePlayer: public Player 
+    {
+    virtual auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 = 0; // Must return a value 0-255 (higher is better)
+    auto getMove (Board& board) const -> Move override;
+    };
+
 
 struct RandomPlayer: Player 
     {
@@ -84,27 +92,48 @@ struct Pacifist: EvalPlayer
     auto evalBoard (Board& board) const -> u32 override;
     };
 
-// A player that tries to move all of its pieces AWAY from the centre of the board, to the edges.
-struct ClearPath: EvalPlayer 
+
+struct ClearPath: EvalPiecePlayer
     {
-    auto evalBoard (Board& board) const -> u32 override;
+    auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
     };
 
-// A player that tries to move all of its piece TOWARDS the centre of the board.
-struct Centre: EvalPlayer 
+struct Centre: EvalPiecePlayer
     {
-    auto evalBoard (Board& board) const -> u32 override;
+    auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
     };
 
-struct Aggresive: EvalPlayer 
+struct Aggresive: EvalPiecePlayer
     {
-    auto evalBoard (Board& board) const -> u32 override;
+    auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
     };
 
-struct Passive: EvalPlayer 
+struct Passive: EvalPiecePlayer
     {
-    auto evalBoard (Board& board) const -> u32 override;
+    auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
     };
+
+// // A player that tries to move all of its pieces AWAY from the centre of the board, to the edges.
+// struct ClearPath: EvalPlayer 
+//     {
+//     auto evalBoard (Board& board) const -> u32 override;
+//     };
+
+// // A player that tries to move all of its piece TOWARDS the centre of the board.
+// struct Centre: EvalPlayer 
+//     {
+//     auto evalBoard (Board& board) const -> u32 override;
+//     };
+
+// struct Aggresive: EvalPlayer 
+//     {
+//     auto evalBoard (Board& board) const -> u32 override;
+//     };
+
+// struct Passive: EvalPlayer 
+//     {
+//     auto evalBoard (Board& board) const -> u32 override;
+//     };
 
 
 
