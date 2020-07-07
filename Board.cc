@@ -466,6 +466,32 @@ auto Board::isCheck (u8 color) -> bool
 
 auto Board::isAttacked (u8 column, u8 row) const -> bool
     {
+// 2300ms
+#if 0 
+    const u8 piece = pieceAt ( column, row ); 
+    if (!piece)
+        return false;
+
+    const u8 attackerColor = ((piece & COLOR_MASK) == WHITE)? BLACK : WHITE; 
+    for (u8 r = 0; r < GRID_LENGTH; ++r) 
+        {
+        if ( !m_pieces[r] )
+            continue; 
+        for (u8 c = 0; c < GRID_LENGTH; ++c) 
+            {
+            u8 piece = pieceAt ( c, r );
+            if (piece && (piece & COLOR_MASK) == attackerColor)
+                {
+                Move move { c, column, r, row, attackerColor };
+                if ( isMoveLegalForPiece ( piece, move ) )
+                    return true;
+                }
+            }
+        }
+    return false;
+#endif
+// 1750ms
+#if 1
     const u8 piece = pieceAt (column, row);
     const u8 attackerColor = (piece & COLOR_MASK) == WHITE? BLACK: WHITE; 
 
@@ -529,4 +555,5 @@ auto Board::isAttacked (u8 column, u8 row) const -> bool
                 }
             }
     return false;
+#endif
     }
