@@ -1,14 +1,12 @@
 #include "Runner.h"
 
-Runner::Runner ( Canvas* canvas )
+Runner::Runner ( Viewer* viewer )
   : gameState {STATE_NORMAL},
     winner {0},
-    m_canvas {canvas},
+    m_viewer {viewer},
     m_players {},
     m_board {},
-    m_whiteMove {true},
-    m_tileSize {canvas->width / Board::GRID_LENGTH},
-    m_delay { 150 }
+    m_whiteMove {true}
     {
     // Pawns 
     for (int row: {1, 6}) 
@@ -30,31 +28,6 @@ Runner::Runner ( Canvas* canvas )
             m_board.setPiece(ROOK | color, 0 + (7 * columnMultiplier), row);
             }
         }
-
-    // Add textures to viewer 
-    if (m_canvas)
-        {
-        for (u8 color: { BLACK, WHITE })
-            for (u8 piece: { BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK })
-                {
-                std::stringstream ss;
-                ss << "Img/";
-                switch (piece) 
-                    {
-                    case BISHOP: ss << "bishop"; break;
-                    case KING:   ss << "king"; break;
-                    case KNIGHT: ss << "knight"; break;
-                    case QUEEN:  ss << "queen"; break;
-                    case ROOK:   ss << "rook"; break;
-                    case PAWN:   ss << "pawn"; break;
-                    }
-                ss << "_"
-                << (color == BLACK ? "black" : "white")
-                << ".png";
-
-                m_canvas->addTexture ( color | piece, ss.str().c_str() );
-                }    
-        }   
     }
 
 Runner::~Runner ()
@@ -67,7 +40,6 @@ Runner::~Runner ()
             player.second = nullptr;
             }
         }
-    if (m_canvas) delete m_canvas;
     }
 
 auto Runner::addPlayer (u8 color, Player* p) -> void
@@ -77,35 +49,6 @@ auto Runner::addPlayer (u8 color, Player* p) -> void
         color = color & Board::COLOR_MASK;
         p->setColor ( color );
         m_players [color] = p;
-        }
-    }
-
-auto Runner::draw () -> void
-    {
-    const auto setColor = 
-        [this] (u8 x, u8 y) -> void
-            {
-            float colorMult = 1.0f;
-            const int index = x + y;
-            if (index & 1) 
-                colorMult += 0.2;
-            m_canvas->brush ( static_cast<u8>(0x77 * colorMult), static_cast<u8>(0x66 * colorMult), static_cast<u8>(0x70 * colorMult), 255 );
-            };
-
-    if (m_canvas) 
-        {
-        for (u8 x = 0; x < Board::GRID_LENGTH; ++x)
-            for (u8 y = 0; y < Board::GRID_LENGTH; ++y)
-                {
-                const u8 drawY = Board::GRID_LENGTH - 1 - y;
-                const u8 piece = m_board.pieceAt (x, y); 
-
-                setColor(x, y);
-                m_canvas->square ( x * m_tileSize, drawY * m_tileSize, m_tileSize, m_tileSize );
-                if ( piece ) 
-                    m_canvas->drawTexture ( piece, x * m_tileSize, drawY * m_tileSize, m_tileSize, m_tileSize );
-                }
-        m_canvas->tick (m_delay);
         }
     }
 
@@ -130,16 +73,15 @@ auto Runner::tick () -> bool
                 {
                 Move move = p->getMove ( m_board );
                 bool isMoveLegal = m_board.doMove ( move );
-                
-                if (!isMoveLegal)
+                if (!isMoveLegal) 
                     throw std::runtime_error ("player attempted an illegal move");
                 }
             }
         m_whiteMove = !m_whiteMove;
         }
-    if (m_canvas) 
+    if (m_viewer) 
         {
-        draw ();
+        m_viewer->draw(m_board);
         }
     return gameState == STATE_NORMAL;
     }

@@ -45,7 +45,9 @@ int main (int argc, char ** argv)
         return EXIT_FAILURE;
         }
     
-    Runner runner { new Canvas ("chessview", 400, 400 ) };
+
+    Viewer viewer { "chessview", 400, 400 };
+    Runner runner { &viewer };
     runner.addPlayer ( WHITE, makePlayer ( args.at(1) ));
     runner.addPlayer ( BLACK, makePlayer ( args.at(2) ));
     for (;;)

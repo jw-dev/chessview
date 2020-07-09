@@ -5,7 +5,7 @@
 #include <sstream>
 
 #include "Board.h"
-#include "Canvas.h"
+#include "Viewer.h"
 #include "Player.h"
 
 enum GameState 
@@ -24,7 +24,7 @@ struct Runner
     GameState gameState;
     u8 winner;
 
-    Runner (Canvas * canvas);
+    Runner (Viewer * viewer);
     Runner (const Runner& other) = delete;
     bool operator=(const Runner& other) = delete;
     ~Runner ();
@@ -33,14 +33,10 @@ struct Runner
     auto tick () -> bool;
 
 protected:
-    Canvas * m_canvas;
+    Viewer * m_viewer;
     std::unordered_map <u8, Player*> m_players;
     Board m_board;
     bool m_whiteMove;
-    int m_tileSize;
-    int m_delay;
-
-    auto draw () -> void;
     };
 
 #endif

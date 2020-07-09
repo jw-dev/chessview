@@ -323,6 +323,7 @@ auto Board::forceDoMove(const Move & move) -> void
         setPiece (src, move.toCol, move.toRow);
         }
     removePiece (move.fromCol, move.fromRow);
+    lastMove = move;
     }
 
 auto Board::hasZeroMoves (u8 color) -> bool

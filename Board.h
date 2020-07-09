@@ -45,6 +45,8 @@ struct Board
     // For when a tile has no piece in it
     const static u8 EMPTY = 0;
 
+    Move lastMove = {0};
+
     Board ();
     Board (const Board& other) = delete;
 
