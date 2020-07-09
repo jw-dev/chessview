@@ -23,6 +23,22 @@ Canvas::Canvas ( const std::string& name, int width, int height )
         SDL_RENDERER_ACCELERATED);
     }
 
+Canvas::~Canvas ()
+    {
+    if (m_window)   
+        {
+        SDL_DestroyWindow (m_window);
+        }
+    if (m_renderer)
+        {
+        SDL_DestroyRenderer (m_renderer);
+        }
+    
+    SDL_QuitSubSystem (SDL_INIT_VIDEO);
+    IMG_Quit ();
+    SDL_Quit ();
+    }
+
 auto Canvas::addTexture (u8 key, const std::string& path) -> void
     {
     const char *p = path.c_str();

@@ -14,6 +14,7 @@ struct Canvas
     int width;
 
     Canvas ( const std::string& name, int width, int height );
+    ~Canvas ();
     Canvas ( const Canvas& other ) = delete;
     bool operator= ( const Canvas& other ) = delete;
 
