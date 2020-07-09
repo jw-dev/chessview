@@ -1,6 +1,8 @@
 
 #include <sstream>
-#include "Canvas.h"
+#include <unordered_map>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include "Board.h"
 
 struct Viewer 

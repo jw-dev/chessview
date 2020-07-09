@@ -3,7 +3,6 @@
 #include <functional>
 #include <algorithm>
 #include <chrono>
-#include "Canvas.h"
 #include "Runner.h"
 #include "Player.h"
 
