@@ -24,8 +24,9 @@ White tries to move its pieces as close to the centre as possible; black tries t
 
 ### Command line 
 To run a game, specify which bots to play for both white and black sides:
-<pre>chess [white] [black]</pre>
-(Possible players are described below.)
+<pre>chess [-noui] white black</pre>
+* `-noui` option disables the UI and plays the game at fullspeed.
+* Options for `black` and `white` players are described below.
 
 ### Controls 
 * **Space**: Play/pause the playback.
