@@ -1,5 +1,35 @@
 #include "Player.h"
 
+// List of available players
+static const std::map <std::string, std::function<Player*()>>
+    players = {
+                { "random",         makeRandom },
+                { "whitesquares",   makeWhiteSquares },
+                { "blacksquares",   makeBlackSquares },
+                { "minimize",       makeMinimizeOpponentMoves },
+                { "defensive",      makeDefensive },
+                { "offensive",      makeOffensive },
+                { "suicidal",       makeSuicidal },
+                { "pacifist",       makePacifist },
+                { "clearpath",      makeClearPath },
+                { "centre",         makeCentre },
+                { "aggressive",     makeAggresive },
+                { "passive",        makePassive },
+              };
+
+// Helper function to create a player from their name
+auto makePlayer (const std::string& arg) -> Player* 
+    {
+    if ( players.find (arg) != players.end() )
+        {
+        return players.at (arg) ();
+        }
+    else 
+        {
+        std::cerr << "Unknown player: " << arg << " (assuming random)" << std::endl;
+        return makeRandom ();
+        }
+    }
 
 // Eval Player
 

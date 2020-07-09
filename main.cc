@@ -6,50 +6,56 @@
 #include "Runner.h"
 #include "Player.h"
 
-static const std::map <std::string, std::function<Player*()>>
-    players = {
-                { "random",         makeRandom },
-                { "whitesquares",   makeWhiteSquares },
-                { "blacksquares",   makeBlackSquares },
-                { "minimize",       makeMinimizeOpponentMoves },
-                { "defensive",      makeDefensive },
-                { "offensive",      makeOffensive },
-                { "suicidal",       makeSuicidal },
-                { "pacifist",       makePacifist },
-                { "clearpath",      makeClearPath },
-                { "centre",         makeCentre },
-                { "aggressive",     makeAggresive },
-                { "passive",        makePassive },
-              };
-
-auto makePlayer (const std::string& arg) -> Player* 
+struct Options 
     {
-    if ( players.find (arg) != players.end() )
+    bool isValid = true;
+    bool noUi = false;
+    std::string whiteName = "";
+    std::string blackName = "";
+    };
+
+auto parseOpt ( int argc, char ** argv ) -> Options
+    {
+    Options opt;
+    std::vector <std::string> args (argv, argv + argc);
+    if (args.size() <= 2) 
         {
-        return players.at (arg) ();
+        opt.isValid = false;
         }
     else 
         {
-        std::cerr << "Unknown player: " << arg << " (assuming random)" << std::endl;
-        return makeRandom ();
+        if (std::find(args.begin(), args.end(), "-noui") != args.end())
+            {
+            opt.noUi = true;
+            }
+        opt.whiteName = args.at (args.size() - 2 );
+        opt.blackName = args.at (args.size() - 1 );
         }
+    return opt;
     }
+
 
 int main (int argc, char ** argv)
     {
-    std::vector<std::string> args (argv, argv + argc);
-    if (args.size() <= 2)
+    Options opt = parseOpt ( argc, argv );
+    if (!opt.isValid) 
         {
-        std::cerr << "usage: " << args[0] << " white black" << std::endl;
+        std::cerr << "usage: " << argv[0] << " [-noui] white black" << std::endl;
         return EXIT_FAILURE;
         }
-    
 
-    Viewer viewer { "chessview", 400, 400 };
-    Runner runner { &viewer };
-    runner.addPlayer ( WHITE, makePlayer ( args.at(1) ));
-    runner.addPlayer ( BLACK, makePlayer ( args.at(2) ));
-    for (;;)
+    Viewer* viewer = nullptr; 
+    if (!opt.noUi)
+        {
+        viewer = new Viewer ( "chessview", 400, 400 );
+        }
+    // Viewer* viewer = noUi? nullptr: new Viewer ( "chessview", 400, 400 );
+    Runner runner { viewer };
+    runner.addPlayer ( WHITE, makePlayer ( opt.whiteName ));
+    runner.addPlayer ( BLACK, makePlayer ( opt.blackName ));
+
+    bool quit = false;
+    while ( !quit )
         {
         SDL_Event e; 
         while ( SDL_PollEvent(&e) )
@@ -57,11 +63,15 @@ int main (int argc, char ** argv)
             switch (e.type) 
                 {
                 case SDL_QUIT: // Exit
-                    return EXIT_SUCCESS;
+                    quit = true;
+                    break;
                 }
             }
         if ( !runner.tick() )
             break;
         }
+
+    if (viewer)
+        delete viewer;
     return EXIT_SUCCESS;
     }

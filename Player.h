@@ -4,9 +4,9 @@
 #include <random>
 #include <numeric>
 #include <functional>
+#include <map>
 #include "Board.h"
 #include "Move.h"
-
 
 template <typename T> 
 T getRandom (const std::vector<T>& vec) 
@@ -136,8 +136,7 @@ struct Passive: EvalPiecePlayer
 //     };
 
 
-
-
+Player* makePlayer (const std::string& name);
 
 Player* makeRandom();
 Player* makeWhiteSquares();
