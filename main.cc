@@ -50,9 +50,9 @@ int main (int argc, char ** argv)
         viewer = new Viewer ( "chessview", 400, 400 );
         }
     // Viewer* viewer = noUi? nullptr: new Viewer ( "chessview", 400, 400 );
-    Runner runner {};
-    runner.addPlayer ( WHITE, makePlayer ( opt.whiteName ));
-    runner.addPlayer ( BLACK, makePlayer ( opt.blackName ));
+    
+    Player * white = makePlayer (opt.whiteName), * black = makePlayer (opt.blackName);
+    Runner runner { white, black };
 
     bool quit = false, paused = false;
     while ( !quit )

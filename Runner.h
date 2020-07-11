@@ -27,12 +27,10 @@ struct Runner
     GameState gameState;
     u8 winner;
 
-    Runner ();
+    Runner (Player* white, Player* black);
     Runner (const Runner& other) = delete;
     bool operator=(const Runner& other) = delete;
     ~Runner ();
-
-    auto addPlayer (u8 color, Player* p) -> void;
 
     auto board () -> const Board&;
     auto undo () -> void; // Undo the last move 

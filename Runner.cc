@@ -1,6 +1,6 @@
 #include "Runner.h"
 
-Runner::Runner ()
+Runner::Runner (Player* white, Player* black)
   : gameState {STATE_NORMAL},
     winner {0},
     m_players {},
@@ -29,6 +29,11 @@ Runner::Runner ()
             board.setPiece(ROOK | color, 0 + (7 * columnMultiplier), row);
             }
         }
+    for (const u8 color: {WHITE, BLACK}) 
+        {
+        m_players [color] = color == WHITE? white: black; 
+        m_players [color]->setColor (color);
+        }
     }
 
 Runner::~Runner ()
@@ -40,16 +45,6 @@ Runner::~Runner ()
             delete player.second;
             player.second = nullptr;
             }
-        }
-    }
-
-auto Runner::addPlayer (u8 color, Player* p) -> void
-    {
-    if (p)
-        {
-        color = color & Board::COLOR_MASK;
-        p->setColor ( color );
-        m_players [color] = p;
         }
     }
 
