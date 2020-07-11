@@ -3,10 +3,13 @@
 
 #include <unordered_map>
 #include <sstream>
+#include <stack>
+#include <assert.h>
 
 #include "Board.h"
 #include "Viewer.h"
 #include "Player.h"
+#include "StateMgr.h"
 
 enum GameState 
     {
@@ -24,19 +27,21 @@ struct Runner
     GameState gameState;
     u8 winner;
 
-    Runner (Viewer * viewer);
+    Runner ();
     Runner (const Runner& other) = delete;
     bool operator=(const Runner& other) = delete;
     ~Runner ();
 
     auto addPlayer (u8 color, Player* p) -> void;
+
+    auto board () -> const Board&;
+    auto undo () -> void; // Undo the last move 
     auto tick () -> bool;
 
 protected:
-    Viewer * m_viewer;
     std::unordered_map <u8, Player*> m_players;
-    Board m_board;
     bool m_whiteMove;
+    StateMgr <Board> m_boards;
     };
 
 #endif

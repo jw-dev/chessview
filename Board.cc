@@ -9,18 +9,13 @@ Board::Board ()
     m_pieces.shrink_to_fit ();
     }
 
-// Returns the current board state.
-auto Board::getState () const -> BoardState
+Board::Board (const Board& other)
+  : m_pieces { }
     {
-    return { m_pieces, m_whiteStaleMoves, m_blackStaleMoves };
-    }
-
-// Sets the current board state.
-auto Board::setState (const BoardState& state) -> void
-    {
-    m_pieces = state.pieces;
-    m_whiteStaleMoves = state.whiteStaleMoves;
-    m_blackStaleMoves = state.blackStaleMoves;
+    std::copy (other.m_pieces.begin(), other.m_pieces.end(), std::back_inserter (m_pieces));
+    m_blackStaleMoves = other.m_blackStaleMoves;
+    m_whiteStaleMoves = other.m_whiteStaleMoves;
+    lastMove = other.lastMove;
     }
 
 auto Board::pieceAt (u8 column, u8 row) const -> u8

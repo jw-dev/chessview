@@ -83,7 +83,7 @@ auto Viewer::draw (const Board& board) -> void
             return Board::GRID_LENGTH - 1 - y;
             };
 
-    static const auto drawTile = 
+    const auto drawTile = 
         [&board, &tileSize, this] (u8 x, u8 y) -> void
             {
             const u8 actualRow = getActualRow (y);
@@ -127,5 +127,4 @@ auto Viewer::draw (const Board& board) -> void
             }
 
     SDL_RenderPresent (m_renderer);
-    SDL_Delay (400);
     }

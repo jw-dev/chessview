@@ -50,11 +50,11 @@ int main (int argc, char ** argv)
         viewer = new Viewer ( "chessview", 400, 400 );
         }
     // Viewer* viewer = noUi? nullptr: new Viewer ( "chessview", 400, 400 );
-    Runner runner { viewer };
+    Runner runner {};
     runner.addPlayer ( WHITE, makePlayer ( opt.whiteName ));
     runner.addPlayer ( BLACK, makePlayer ( opt.blackName ));
 
-    bool quit = false;
+    bool quit = false, paused = false;
     while ( !quit )
         {
         SDL_Event e; 
@@ -62,13 +62,39 @@ int main (int argc, char ** argv)
             {
             switch (e.type) 
                 {
+                case SDL_KEYDOWN:
+                    switch (e.key.keysym.sym) 
+                        {
+                        case SDLK_LEFT: 
+                            if (paused) 
+                                runner.undo ();
+                            break;
+                        case SDLK_RIGHT:
+                            if (paused && runner.gameState == STATE_NORMAL)
+                                runner.tick ();
+                            break;
+                        case SDLK_SPACE:
+                            paused = !paused;
+                            break;
+                        }
+                    break;
                 case SDL_QUIT: // Exit
                     quit = true;
                     break;
                 }
             }
-        if ( !runner.tick() )
-            break;
+        if ( !paused && runner.gameState == STATE_NORMAL )
+            {
+            if ( !runner.tick() )
+                break;
+            }
+
+        if (viewer)
+            {
+            viewer->draw (runner.board());
+            if (!paused)
+                SDL_Delay ( 300 );
+            }
         }
 
     if (viewer)

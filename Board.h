@@ -25,13 +25,6 @@ enum PieceBits
     WHITE = 8, 
     };
 
-// Structure used for preserving board state via getState() and setState().
-struct BoardState 
-    {
-    std::vector <u32> pieces;
-    u32 whiteStaleMoves = 0, blackStaleMoves = 0;
-    };
-
 // Holds board state. 
 // Board state is held in m_pieces. 
 struct Board 
@@ -48,13 +41,8 @@ struct Board
     Move lastMove = {0};
 
     Board ();
-    Board (const Board& other) = delete;
-
-    // Returns the current board state.
-    auto getState () const -> BoardState;
-
-    // Sets the current board state.
-    auto setState (const BoardState& state) -> void;
+    Board (const Board& other);
+    auto operator=(const Board& other) =delete;
 
     // Returns the piece encoded as a u8 at the specified column and row.
     // Bitwise magic with PieceBits is required to extract information.
@@ -110,12 +98,14 @@ struct Board
         u32 dest = m_pieces [move.toRow];
         u32 whiteStaleMoves = m_whiteStaleMoves;
         u32 blackStaleMoves = m_blackStaleMoves;
+        Move _lastMove = lastMove;
         forceDoMove (move);
         auto result = func();
         m_pieces [move.fromRow] = src;
         m_pieces [move.toRow] = dest;
         m_whiteStaleMoves = whiteStaleMoves;
         m_blackStaleMoves = blackStaleMoves;
+        lastMove = _lastMove;
         return result;
         }
 
