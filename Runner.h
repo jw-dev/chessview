@@ -22,24 +22,56 @@ enum GameState
 
 struct Runner 
     {
-    const u8 TILE_SIZE = 8U;
+    GameState gameState = STATE_NORMAL;
+    u8 winner = 0U;
 
-    GameState gameState;
-    u8 winner;
+    Runner(Player* white, Player* black);
+    virtual ~Runner();
 
-    Runner (Player* white, Player* black);
-    Runner (const Runner& other) = delete;
-    bool operator=(const Runner& other) = delete;
-    ~Runner ();
-
-    auto board () -> const Board&;
-    auto undo () -> void; // Undo the last move 
-    auto tick () -> bool;
-
+    virtual auto run() -> void = 0;
+    
 protected:
     std::unordered_map <u8, Player*> m_players;
     bool m_whiteMove;
+
+    virtual auto board () -> Board& = 0;
+    virtual auto doNewMove() -> void = 0;
+
+    virtual auto tick() -> bool;
+    virtual auto createDefaultBoard() -> void;
+    };
+
+
+struct RunnerUI final: public Runner 
+    {
+    RunnerUI (Player* white, Player* black);
+    ~RunnerUI() override; 
+
+    auto run() -> void override;
+private:
+    const u8 TILE_SIZE = 8U;
+
     StateMgr <Board> m_boards;
+    Viewer m_viewer;
+
+    auto board() -> Board& override;
+    auto doNewMove() -> void override;
+    auto undo() -> void;
+    };
+
+
+struct RunnerStd final: public Runner 
+    {
+    RunnerStd (Player* white, Player* black);
+    ~RunnerStd() override;
+
+    auto run() -> void override;
+private:
+    Board m_board;
+
+    auto board() -> Board& override;
+    auto doNewMove() -> void override;
+    
     };
 
 #endif

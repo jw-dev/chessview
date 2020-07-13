@@ -4,31 +4,8 @@ Runner::Runner (Player* white, Player* black)
   : gameState {STATE_NORMAL},
     winner {0},
     m_players {},
-    m_whiteMove {true},
-    m_boards {}
+    m_whiteMove {true}
     {
-    auto &board = m_boards.create ();
-
-    // Pawns 
-    for (int row: {1, 6}) 
-        for (int column = 0; column < 8; ++column)
-            {
-            u8 color = row == 1 ? WHITE: BLACK; 
-            board.setPiece (PAWN | color, column, row);
-            }
-
-    for (int row: {0, 7})
-        {
-        u8 color = row == 0 ? WHITE: BLACK;
-        board.setPiece(QUEEN | color, 3, row);
-        board.setPiece(KING | color, 4, row);
-        for (int columnMultiplier: {0, 1})
-            {
-            board.setPiece(BISHOP | color, 2 + (3 * columnMultiplier), row);
-            board.setPiece(KNIGHT | color, 1 + (5 * columnMultiplier), row);
-            board.setPiece(ROOK | color, 0 + (7 * columnMultiplier), row);
-            }
-        }
     for (const u8 color: {WHITE, BLACK}) 
         {
         m_players [color] = color == WHITE? white: black; 
@@ -36,68 +13,59 @@ Runner::Runner (Player* white, Player* black)
         }
     }
 
-Runner::~Runner ()
+Runner::~Runner() 
     {
-    for (auto player: m_players)
-        {
-        if (player.second)
+    for (const auto& k: m_players) 
+        if (k.second) 
+            delete k.second;
+    }
+
+auto Runner::createDefaultBoard () -> void
+    {
+    Board& b = board();
+    // Pawns 
+    for (int row: {1, 6}) 
+        for (int column = 0; column < 8; ++column)
             {
-            delete player.second;
-            player.second = nullptr;
+            u8 color = row == 1 ? WHITE: BLACK; 
+            b.setPiece (PAWN | color, column, row);
+            }
+
+    for (int row: {0, 7})
+        {
+        u8 color = row == 0 ? WHITE: BLACK;
+        b.setPiece(QUEEN | color, 3, row);
+        b.setPiece(KING | color, 4, row);
+        for (int columnMultiplier: {0, 1})
+            {
+            b.setPiece(BISHOP | color, 2 + (3 * columnMultiplier), row);
+            b.setPiece(KNIGHT | color, 1 + (5 * columnMultiplier), row);
+            b.setPiece(ROOK | color, 0 + (7 * columnMultiplier), row);
             }
         }
     }
 
-auto Runner::board () -> const Board&
-    {
-    return m_boards.get();
-    }
-
-auto Runner::undo () -> void // Undo the last move
-    {
-    if (!m_boards.atBeg())
-        {
-        m_boards.move(-1);
-        m_whiteMove = !m_whiteMove;
-        gameState = STATE_NORMAL;
-        }
-    }
-
-auto Runner::tick () -> bool
+auto Runner::tick() -> bool 
     {
     if (gameState == STATE_NORMAL)
         {
         const u8 player = m_whiteMove ? WHITE: BLACK;
-        Board& board = m_boards.get();
+        Board& b = board();
 
-        if (board.isCheckmate (player))
+        if (b.isCheckmate (player)) 
             {
             gameState = STATE_CHECKMATE;
             winner = m_whiteMove ? BLACK: WHITE; // Reversed
             }
-        else if (board.isStalemate (player))
+        else if (b.isStalemate (player)) 
             {
             gameState = STATE_STALEMATE_NO_MOVES; // TODO
             }
         else 
             {
-            if (m_boards.atEnd()) 
-                {
-                Board& newBoard = m_boards.create();
-                Player* p = m_players [ m_whiteMove ? WHITE: BLACK ];
-                if (p)
-                    {
-                    Move move = p->getMove ( newBoard );
-                    if (!newBoard.doMove ( move)) 
-                        throw std::runtime_error ("player attempted an illegal move");
-                    }
-                }
-            else 
-                {
-                m_boards.move(1);
-                }
-            m_whiteMove = !m_whiteMove;
+            doNewMove();
             }
+        m_whiteMove = !m_whiteMove;
         }
     return gameState == STATE_NORMAL;
     }

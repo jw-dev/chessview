@@ -1,8 +1,5 @@
-#include <map>
 #include <iostream>
-#include <functional>
 #include <algorithm>
-#include <chrono>
 #include "Runner.h"
 #include "Player.h"
 
@@ -34,6 +31,19 @@ auto parseOpt ( int argc, char ** argv ) -> Options
     return opt;
     }
 
+auto getRunner (const Options& opt) -> Runner*
+    {
+    Player * white = makePlayer (opt.whiteName), * black = makePlayer (opt.blackName);
+    if (opt.noUi)
+        {
+        return new RunnerStd (white, black);
+        }
+    else 
+        {
+        return new RunnerUI (white, black);
+        }
+    }
+
 
 int main (int argc, char ** argv)
     {
@@ -44,60 +54,6 @@ int main (int argc, char ** argv)
         return EXIT_FAILURE;
         }
 
-    Viewer* viewer = nullptr; 
-    if (!opt.noUi)
-        {
-        viewer = new Viewer ( "chessview", 400, 400 );
-        }
-    // Viewer* viewer = noUi? nullptr: new Viewer ( "chessview", 400, 400 );
-    
-    Player * white = makePlayer (opt.whiteName), * black = makePlayer (opt.blackName);
-    Runner runner { white, black };
-
-    bool quit = false, paused = false;
-    while ( !quit )
-        {
-        SDL_Event e; 
-        while ( SDL_PollEvent(&e) )
-            {
-            switch (e.type) 
-                {
-                case SDL_KEYDOWN:
-                    switch (e.key.keysym.sym) 
-                        {
-                        case SDLK_LEFT: 
-                            if (paused) 
-                                runner.undo ();
-                            break;
-                        case SDLK_RIGHT:
-                            if (paused && runner.gameState == STATE_NORMAL)
-                                runner.tick ();
-                            break;
-                        case SDLK_SPACE:
-                            paused = !paused;
-                            break;
-                        }
-                    break;
-                case SDL_QUIT: // Exit
-                    quit = true;
-                    break;
-                }
-            }
-        if ( !paused && runner.gameState == STATE_NORMAL )
-            {
-            if ( !runner.tick() )
-                break;
-            }
-
-        if (viewer)
-            {
-            viewer->draw (runner.board());
-            if (!paused)
-                SDL_Delay ( 300 );
-            }
-        }
-
-    if (viewer)
-        delete viewer;
-    return EXIT_SUCCESS;
+    Runner * runner = getRunner(opt);
+    runner->run();
     }
