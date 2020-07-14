@@ -5,6 +5,7 @@
 #include <math.h>
 #include <vector>
 #include <iostream>
+#include <unordered_map>
 #include "Move.h"
 
 using u8 = uint_least8_t;
@@ -22,6 +23,7 @@ enum PieceBits
     QUEEN = 4,
     KING = 5,
     ROOK = 6,
+    CASTLE = 7, // A rook that has not moved yet
     WHITE = 8, 
     };
 
@@ -37,6 +39,9 @@ struct Board
     const static u8 COLOR_MASK = 0b1000;
     // For when a tile has no piece in it
     const static u8 EMPTY = 0;
+    // Bits 
+    const static u8 KING_MOVED_MASK = 0b00000001;
+    const static u8 STALE_MASK = 0b11111110;
 
     Move lastMove = {0};
 
@@ -87,6 +92,9 @@ struct Board
     // Note we don't specify a player here; the piece at the target is taken as the defender.
     auto isAttacked (u8 column, u8 row) const -> bool;
 
+    // Same as above, but specifying a piece that, if it were on that square, would be attacked.
+    auto isAttacked (u8 column, u8 row, u8 piece) const -> bool;
+
     
 
     // Try a move and then revert the board state.
@@ -96,15 +104,13 @@ struct Board
         {
         u32 src = m_pieces [move.fromRow];
         u32 dest = m_pieces [move.toRow];
-        u32 whiteStaleMoves = m_whiteStaleMoves;
-        u32 blackStaleMoves = m_blackStaleMoves;
+        auto bits = m_bits;
         Move _lastMove = lastMove;
         forceDoMove (move);
         auto result = func();
         m_pieces [move.fromRow] = src;
         m_pieces [move.toRow] = dest;
-        m_whiteStaleMoves = whiteStaleMoves;
-        m_blackStaleMoves = blackStaleMoves;
+        m_bits = bits;
         lastMove = _lastMove;
         return result;
         }
@@ -116,9 +122,10 @@ protected:
     // So, m_pieces is 8 u32s, one for each row on the board.
     std::vector <u32> m_pieces;
 
-    // Tracking of "stale" moves (no pawn move, no capture for x turns).
-    // Stalemate is a situation where both these values are >= 50.
-    u32 m_whiteStaleMoves = 0, m_blackStaleMoves = 0;
+    // Store bits specific to each player. 
+    // Bit 0 is set when the King has moved. 
+    // Bits 1-7 are for the number of stale moves for the player.
+    std::unordered_map <u8, u8> m_bits; 
 
     // Do a move without checking if it is legal, just do it.
     auto forceDoMove (const Move& move) -> void;

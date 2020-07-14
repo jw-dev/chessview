@@ -2,7 +2,8 @@
 
 
 Board::Board () 
-  : m_pieces { }
+  : m_pieces { },
+    m_bits { { WHITE, 0U }, { BLACK, 0U } }
     {
     // Pack vector storage.
     m_pieces.resize (GRID_LENGTH);
@@ -10,11 +11,11 @@ Board::Board ()
     }
 
 Board::Board (const Board& other)
-  : m_pieces { }
+  : m_pieces { },
+    m_bits { } 
     {
     std::copy (other.m_pieces.begin(), other.m_pieces.end(), std::back_inserter (m_pieces));
-    m_blackStaleMoves = other.m_blackStaleMoves;
-    m_whiteStaleMoves = other.m_whiteStaleMoves;
+    m_bits = other.m_bits;
     lastMove = other.lastMove;
     }
 
@@ -160,7 +161,38 @@ auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
             return dcol == drow && !isBlockedOnDiagonal ();
         case KING: 
             // King can only move one tile at a time, but in any direction
-            return dcol <= 1 && drow <= 1;
+            if (dcol <= 1 && drow <= 1)
+                return true;
+            else if (drow == 0 && dcol == 2)
+                {
+                // Castling
+                const int dir = getDir ( move.fromCol, move.toCol );
+
+                // King has moved 
+                const u8 color = piece & COLOR_MASK;
+                if ( m_bits[color] & KING_MOVED_MASK ) 
+                    return false;
+
+                // Check if piece in corner is a rook that is castleable 
+                const u8 castleColumn = dir == -1 ? 0 : 7;
+                const u8 castle = pieceAt ( castleColumn, move.fromRow );
+                if ( (castle & TYPE_MASK) != CASTLE )
+                    return false;
+
+                // Cannot move from, through or into check (but into check will be covered elsewhere, so we only need to check from and through)
+                if ( isAttacked ( move.fromCol, move.fromRow, move.color) )
+                    return false;
+                else if ( isAttacked ( move.fromCol + dir, move.toRow, move.color ) )
+                    return false;
+
+                // Finally, all tiles between the king and the rook must be EMPTY
+                for ( u8 col = move.fromCol + dir; col != castleColumn; col += dir )
+                    if ( pieceAt (col, move.fromRow) != EMPTY )
+                        return false;
+
+                return true;
+                }
+            return false;
         case KNIGHT: 
             // Knight can only move in an L shape; one of the directions must be 2 and one must be 1, exactly.
             return (dcol == 2 && drow == 1) || (dcol == 1 && drow == 2);
@@ -215,6 +247,7 @@ auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
                 return false;
             return (drow && dcol)? !isBlockedOnDiagonal(): !isBlockedOnAxis(); 
         case ROOK:
+        case CASTLE:
             // Rook can only move sideways or vertically, so delta row must be 0 or delta column must be 0, otherwise we are moving diagonally
             return (!drow || !dcol) && !isBlockedOnAxis();
         default:
@@ -262,7 +295,7 @@ auto Board::isStalemate (u8 color) -> bool
         
 
     // Stalemate 2: There has been 0 captures or pawn moves in the last 50 moves.
-    if (m_blackStaleMoves >= 50 && m_whiteStaleMoves >= 50)
+    if ( (m_bits[WHITE] & STALE_MASK) >= 50 && (m_bits[BLACK] & STALE_MASK) >= 50 )
         {
         // std::cout << "Stalemate : 50 stale moves." << std::endl;
         return true;
@@ -299,12 +332,42 @@ auto Board::forceDoMove(const Move & move) -> void
     u8 src = pieceAt (move.fromCol, move.fromRow);
 
     // Check for stale moves. 
-    u32& moves = (move.color == WHITE? m_whiteStaleMoves: m_blackStaleMoves);
-    if ((src & TYPE_MASK) != PAWN && pieceAt(move.toCol, move.toRow) == EMPTY)
-        moves++;
-    else    
-        moves = 0;
+    if ((src & TYPE_MASK) != PAWN && pieceAt (move.toCol, move.toRow) == EMPTY) 
+        {
+        const u8 bits = m_bits[ move.color ];
+        const u8 stale = ((bits & STALE_MASK) >> KING_MOVED_MASK) + 1;
+        const u8 kingMoved = bits & KING_MOVED_MASK;
 
+        m_bits [ move.color ] = (stale << KING_MOVED_MASK) | kingMoved;
+        }
+    else 
+        {
+        m_bits [ move.color ] &= (~STALE_MASK);
+        }
+
+    if ((src & TYPE_MASK) == CASTLE) // Moving rook for first time 
+        src = ROOK | move.color;
+
+    // Castling 
+    else if ((src & TYPE_MASK) == KING)
+        {
+        if ( move.fromCol == 4 && (move.toCol == 6 || move.toCol == 2) )
+            {
+            const bool kingSide = move.toCol == 6;
+            const u8 row = move.fromRow;
+            const u8 rookSourceCol = kingSide? 7: 0;
+            const u8 rookTargetCol = kingSide? 5: 3;
+
+            removePiece ( rookSourceCol, row );
+            setPiece ( ROOK | move.color, rookTargetCol, row );
+            }
+
+        u8& bits = m_bits [ move.color ];
+        if ( !(bits & KING_MOVED_MASK) ) 
+            {
+            bits |= KING_MOVED_MASK;
+            }
+        }
 
     // Do promotion
     if ((src & TYPE_MASK) == PAWN && move.promotion) 
@@ -373,6 +436,9 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                         for (int c: {-1, 0, 1})
                             for (int r: {-1, 0, 1})
                                 tryAddMove (column + c, row + r);
+                        // Try adding castling moves 
+                        tryAddMove ( column - 2, row );
+                        tryAddMove ( column + 2, row );
                         break;
                         }
                     case KNIGHT:
@@ -419,6 +485,7 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                         break;
                         }
                     case ROOK:
+                    case CASTLE:
                         {
                         // Try horizontal and vertical vectors.
                         for (int mult: {-1, 1})
@@ -462,6 +529,14 @@ auto Board::isCheck (u8 color) -> bool
 
 auto Board::isAttacked (u8 column, u8 row) const -> bool
     {
+    const u8 piece = pieceAt ( column, row );
+    if (!piece)
+        return false;
+    return isAttacked ( column, row, piece);
+    }
+
+auto Board::isAttacked (u8 column, u8 row, u8 piece) const -> bool
+    {
 // 2300ms
 #if 0 
     const u8 piece = pieceAt ( column, row ); 
@@ -488,9 +563,7 @@ auto Board::isAttacked (u8 column, u8 row) const -> bool
 #endif
 // 1750ms
 #if 1
-    const u8 piece = pieceAt (column, row);
-    const u8 attackerColor = (piece & COLOR_MASK) == WHITE? BLACK: WHITE; 
-
+    const u8 attackerColor = (piece & COLOR_MASK) == WHITE? BLACK: WHITE;
     // First of all, check knight moves 
     // All squares around the tile that are +2 rows, +2 colums. (or -ve)
     const u8 knight = (KNIGHT | attackerColor);
@@ -544,6 +617,7 @@ auto Board::isAttacked (u8 column, u8 row) const -> bool
                     case QUEEN:
                         return true;
                     case ROOK: 
+                    case CASTLE:
                         if ((dcol && !drow) || (!dcol && drow))
                             return true;
                         break;

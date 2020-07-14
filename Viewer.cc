@@ -24,7 +24,7 @@ Viewer::Viewer (const std::string& name, int width, int height)
 
     // Initialise textures
     for (u8 color: { BLACK, WHITE })
-        for (u8 piece: { BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK })
+        for (u8 piece: { BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK, CASTLE })
             {
             std::stringstream ss;
             ss << "Img/";
@@ -36,6 +36,7 @@ Viewer::Viewer (const std::string& name, int width, int height)
                 case QUEEN:  ss << "queen"; break;
                 case ROOK:   ss << "rook"; break;
                 case PAWN:   ss << "pawn"; break;
+                case CASTLE: ss << "rook"; break;
                 }
             ss << "_"
             << (color == BLACK ? "black" : "white")

@@ -40,7 +40,7 @@ auto Runner::createDefaultBoard () -> void
             {
             b.setPiece(BISHOP | color, 2 + (3 * columnMultiplier), row);
             b.setPiece(KNIGHT | color, 1 + (5 * columnMultiplier), row);
-            b.setPiece(ROOK | color, 0 + (7 * columnMultiplier), row);
+            b.setPiece(CASTLE | color, 0 + (7 * columnMultiplier), row);
             }
         }
     }
