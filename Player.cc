@@ -18,6 +18,10 @@ static const std::map <std::string, std::function<Player*()>>
                 { "centre",         makeCentre },
                 { "aggressive",     makeAggresive },
                 { "passive",        makePassive },
+                { "expensive",      makeExpensive },
+                { "cheap",          makeCheap },
+                { "far",            makeFar },
+                { "near",           makeNear },
               };
 
 // Helper function to create a player from their name
@@ -87,14 +91,17 @@ auto EvalMovesPlayer::getMove (Board& board) const -> Move
     return getRandom (selected);
     }
 
-auto EvalPiecePlayer::getMove (Board& board) const -> Move 
+auto EvalPositionPlayer::getMove (Board& board) const -> Move 
     {
     const std::vector<Move> moves = board.getMoves ( color );
     std::vector <Move> selected;
     u32 maxScore = 0;
     for (const auto& move: moves)
         {
-        u32 score = board.tryMove(move, 
+        // const u8 piece = board.pieceAt ( move.fromCol, move.fromRow );
+        // const u32 score = evalPiece ( piece, move.toCol, move.toRow );
+        u32 score = 
+            board.tryMove(move, 
             [&board, &move, &selected, &maxScore, this] () -> u32
                 {
                 u32 thisScore = 0;
@@ -109,6 +116,28 @@ auto EvalPiecePlayer::getMove (Board& board) const -> Move
                         }
                 return thisScore;
                 });
+        if (score >= maxScore) 
+            {
+            if (score > maxScore) 
+                {
+                maxScore = score;
+                selected.clear();
+                }
+            selected.push_back (move);
+            }
+        }
+    return getRandom (selected);
+    }
+
+auto EvalPiecePlayer::getMove (Board& board) const -> Move 
+    {
+    const std::vector<Move> moves = board.getMoves ( color );
+    std::vector <Move> selected;
+    u32 maxScore = 0;
+    for (const auto& move: moves)
+        {
+        const u8 piece = board.pieceAt ( move.fromCol, move.fromRow );
+        const u32 score = evalPiece ( piece, move.toCol, move.toRow );
         if (score >= maxScore) 
             {
             if (score > maxScore) 
@@ -274,8 +303,6 @@ auto Offensive::evalBoard (Board& board) const -> u32
     }
 
 
-
-
 auto ClearPath::evalPiece (u8, u8 column, u8) const -> u8 
     {
     static const std::vector <u32> bonus = { 8, 4, 2, 0, 0, 2, 4, 8 };
@@ -300,6 +327,47 @@ auto Passive::evalPiece (u8, u8, u8 row) const -> u8
     return bonus [row];
     }
 
+auto Expensive::evalPiece (u8 piece, u8, u8) const -> u8 
+    {
+    static const std::map <u8, u8> bonus
+        = {
+            { PAWN, 1 },
+            { BISHOP, 2 },
+            { KNIGHT, 2 },
+            { ROOK, 3 },
+            { CASTLE, 3 },
+            { QUEEN, 4 },
+            { KING, 5 },
+          };
+    return bonus.at( piece & Board::TYPE_MASK );
+    }
+
+auto Cheap::evalPiece (u8 piece, u8, u8) const -> u8 
+    {
+    static const std::map <u8, u8> bonus
+        = {
+            { PAWN, 5 },
+            { BISHOP, 4 },
+            { KNIGHT, 4 },
+            { ROOK, 3 },
+            { CASTLE, 3 },
+            { QUEEN, 2 },
+            { KING, 1 },
+          };
+    return bonus.at( piece & Board::TYPE_MASK );
+    }
+
+auto Near::evalMove (const Move& move) const -> u32
+    {
+    u32 distance = std::max ( abs(move.fromCol - move.toCol), abs(move.fromRow - move.toRow) );
+    return UINT32_MAX - distance;
+    }
+
+auto Far::evalMove (const Move& move) const -> u32
+    {
+    u32 distance = std::max ( abs(move.fromCol - move.toCol), abs(move.fromRow - move.toRow) );
+    return distance;
+    }
 
 Player* makeRandom () 
     {
@@ -374,4 +442,24 @@ Player* makeAggresive()
 Player* makePassive()
     {
     return new Passive();
+    }
+
+Player* makeExpensive()
+    {
+    return new Expensive();
+    }
+
+Player* makeCheap()
+    {
+    return new Cheap();
+    }
+
+Player* makeFar()
+    {
+    return new Far();
+    }
+
+Player* makeNear()
+    {
+    return new Near();
     }

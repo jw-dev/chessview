@@ -40,12 +40,20 @@ struct EvalMovesPlayer: public Player
     };
 
 // Interface for a player who wants to rank the position and type of pieces.
-// Player has no idea of the board state or even what move is played to get the piece to that position.
-struct EvalPiecePlayer: public Player 
+// Player has no idea of the board state or even what move is played to get the pieces to those positions.
+struct EvalPositionPlayer: public Player 
     {
     virtual auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 = 0; // Must return a value 0-255 (higher is better)
     auto getMove (Board& board) const -> Move override;
     };
+
+// Interface for a player who wants to rank the position and type of a single piece - the one that is about to move.
+// Player has no idea of the board state.
+struct EvalPiecePlayer: public Player 
+    {
+    virtual auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 = 0; // Must return a value 0-255 (higher is better)
+    auto getMove (Board& board) const -> Move override;
+    }; 
 
 
 struct RandomPlayer: Player 
@@ -108,24 +116,44 @@ struct Pacifist: EvalPlayer
     };
 
 
-struct ClearPath: EvalPiecePlayer
+struct ClearPath: EvalPositionPlayer
     {
     auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
     };
 
-struct Centre: EvalPiecePlayer
+struct Centre: EvalPositionPlayer
     {
     auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
     };
 
-struct Aggresive: EvalPiecePlayer
+struct Aggresive: EvalPositionPlayer
     {
     auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
     };
 
-struct Passive: EvalPiecePlayer
+struct Passive: EvalPositionPlayer
     {
     auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
+    };
+
+struct Expensive: EvalPiecePlayer
+    {
+    auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
+    };
+
+struct Cheap: EvalPiecePlayer
+    {
+    auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
+    };
+
+struct Far: EvalMovesPlayer
+    {
+    auto evalMove (const Move& move) const -> u32 override;
+    };
+
+struct Near: EvalMovesPlayer
+    {
+    auto evalMove (const Move& move) const -> u32 override;
     };
 
 
@@ -147,6 +175,10 @@ Player* makeClearPath();
 Player* makeCentre();
 Player* makeAggresive();
 Player* makePassive();
+Player* makeExpensive();
+Player* makeCheap();
+Player* makeFar();
+Player* makeNear();
 
 // Defensive (move pieces out of danger)
 // Offensive (capture as much as possible)
