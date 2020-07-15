@@ -35,18 +35,24 @@ To run a game, specify which bots to play for both white and black sides:
 
 ### Players
 
-* `random`: Plays a random move from the set of available moves. Makes for interesting but silly games.
-* `whitesquares`: Ranks moves according to how many pieces fall onto white squares and prefers these. Leads to interesting aesthetic patterns.
-* `blacksquares`: Like `whitesquares`, but for black squares (obviously).
-* `minimize`: Makes plays in order to minimize the number of counter moves the opponent has. Is actually quite decent at chess, since usually ends up checkmating.
-* `defensive`: Plays in order to minimize the number of its own pieces being captured and under attack.
-* `offensive`: Plays in order to maximize the number of opponent pieces being captured and under attack.
-* `suicidal`: Opposite of `defensive`; plays in order to maximize the number of its own pieces being captures and under attack.
-* `pacifist`: Opposite of `offensive`; plays in order to minimize the number of opponent pieces being captured and under attack.
-* `centre`: Plays in order to control the centre d and e files.
-* `clearpath`: Opposite of `centre`; plays to control the a and h files.
-* `aggressive`: Plays to push its pieces to the opposite rank. Pushes one piece and then keeps moving that piece back and forth. Quite boring.
-* `passive`: Plays to prevent pushing its pieces at all; insanely boring (and terrible.)
+|Name|Description|
+|-|-|
+|`random`|Plays a random move from the set of available moves. Makes for interesting but silly games.|
+|`whitesquares`|Ranks moves according to how many pieces fall onto white squares and prefers these. Leads to interesting aesthetic patterns.|
+|`blacksquares`|Like `whitesquares`, but for black squares (obviously).|
+|`min`|Makes plays in order to minimize the number of counter moves the opponent has. Is actually quite decent at chess, since usually ends up checkmating.|
+|`max`|Like `min`, but *maximizes* the number of responses the opponent has.|
+|`min_self`|Minimizes the number of moves that self has.|
+|`max_self`|Maximizes the number of moves that self has.|
+|`defensive`|Plays in order to minimize the number of its own pieces being captured and under attack.|
+|`offensive`|Plays in order to maximize the number of opponent pieces being captured and under attack.|
+|`suicidal`|Opposite of `defensive`; plays in order to maximize the number of its own pieces being captures and under attack.|
+|`pacifist`|Opposite of `offensive`; plays in order to minimize the number of opponent pieces being captured and under attack.|
+|`centre`|Plays in order to control the centre d and e files.|
+|`edge`|Opposite of `centre`; plays to control the a and h files.|
+|`aggressive`|Plays to push its pieces to the opposite rank. Pushes one piece and then keeps moving that piece back and forth. Quite boring.|
+|`passive`|Plays to prevent pushing its pieces at all; insanely boring (and terrible.)|
+
 
 ## Features
 * Generates all legal moves for all pieces, allowing bots to rank them.

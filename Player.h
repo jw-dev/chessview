@@ -68,6 +68,21 @@ struct MinimizeOpponentMoves: EvalPlayer
     auto evalBoard (Board& board) const -> u32 override;
     };
 
+struct MinimizeOwnMoves: EvalPlayer 
+    {
+    auto evalBoard (Board& board) const -> u32 override;
+    };
+
+struct MaximizeOpponentMoves: EvalPlayer 
+    {
+    auto evalBoard (Board& board) const -> u32 override;
+    };
+
+struct MaximizeOwnMoves: EvalPlayer 
+    {
+    auto evalBoard (Board& board) const -> u32 override;
+    };
+
 // A player that minimizes the number of own pieces that are under attack.
 struct Defensive: EvalPlayer 
     {
@@ -113,28 +128,6 @@ struct Passive: EvalPiecePlayer
     auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
     };
 
-// // A player that tries to move all of its pieces AWAY from the centre of the board, to the edges.
-// struct ClearPath: EvalPlayer 
-//     {
-//     auto evalBoard (Board& board) const -> u32 override;
-//     };
-
-// // A player that tries to move all of its piece TOWARDS the centre of the board.
-// struct Centre: EvalPlayer 
-//     {
-//     auto evalBoard (Board& board) const -> u32 override;
-//     };
-
-// struct Aggresive: EvalPlayer 
-//     {
-//     auto evalBoard (Board& board) const -> u32 override;
-//     };
-
-// struct Passive: EvalPlayer 
-//     {
-//     auto evalBoard (Board& board) const -> u32 override;
-//     };
-
 
 Player* makePlayer (const std::string& name);
 
@@ -142,6 +135,9 @@ Player* makeRandom();
 Player* makeWhiteSquares();
 Player* makeBlackSquares();
 Player* makeMinimizeOpponentMoves();
+Player* makeMaximizeOpponentMoves();
+Player* makeMinimizeOwnMoves();
+Player* makeMaximizeOwnMoves();
 Player* makeDefensive();
 Player* makeOffensive();
 Player* makeSuicidal();

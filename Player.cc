@@ -6,12 +6,15 @@ static const std::map <std::string, std::function<Player*()>>
                 { "random",         makeRandom },
                 { "whitesquares",   makeWhiteSquares },
                 { "blacksquares",   makeBlackSquares },
-                { "minimize",       makeMinimizeOpponentMoves },
+                { "min",            makeMinimizeOpponentMoves },
+                { "max",            makeMaximizeOpponentMoves },
+                { "min_self",       makeMinimizeOwnMoves },
+                { "max_self",       makeMaximizeOwnMoves },
                 { "defensive",      makeDefensive },
                 { "offensive",      makeOffensive },
                 { "suicidal",       makeSuicidal },
                 { "pacifist",       makePacifist },
-                { "clearpath",      makeClearPath },
+                { "edge",           makeClearPath },
                 { "centre",         makeCentre },
                 { "aggressive",     makeAggresive },
                 { "passive",        makePassive },
@@ -173,6 +176,25 @@ auto MinimizeOpponentMoves::evalBoard (Board& board) const -> u32
     return 100 - board.getMoves (oppColor).size ();
     }
 
+// Max opponent moves.
+auto MaximizeOpponentMoves::evalBoard (Board& board) const -> u32
+    {
+    u8 oppColor = color == WHITE? BLACK: WHITE;
+    return board.getMoves (oppColor).size ();
+    }
+
+// Min self moves.
+auto MinimizeOwnMoves::evalBoard (Board& board) const -> u32
+    {
+    return 100 - board.getMoves (color).size ();
+    }
+
+// Max self moves.
+auto MaximizeOwnMoves::evalBoard (Board& board) const -> u32
+    {
+    return board.getMoves (color).size ();
+    }
+
 // Defensive.
 auto Defensive::evalBoard (Board& board) const -> u32
     {
@@ -297,6 +319,21 @@ Player* makeBlackSquares()
 Player* makeMinimizeOpponentMoves()
     {
     return new MinimizeOpponentMoves();
+    }
+
+Player* makeMaximizeOpponentMoves()
+    {
+    return new MaximizeOpponentMoves();
+    }
+
+Player* makeMinimizeOwnMoves()
+    {
+    return new MinimizeOwnMoves();
+    }
+
+Player* makeMaximizeOwnMoves()
+    {
+    return new MaximizeOwnMoves();
     }
 
 Player* makeDefensive()
