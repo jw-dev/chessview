@@ -95,7 +95,8 @@ struct Board
     // Same as above, but specifying a piece that, if it were on that square, would be attacked.
     auto isAttacked (u8 column, u8 row, u8 piece) const -> bool;
 
-    
+    // Returns true if the move is an en passant capture.
+    auto isEnPassant (const Move& move) const -> bool; 
 
     // Try a move and then revert the board state.
     // The function f() is a user-specified function to check the board state.

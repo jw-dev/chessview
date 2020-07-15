@@ -94,6 +94,46 @@ auto Board::isMoveLegal (const Move& move) -> bool
     return isMoveLegalForPiece (piece, move) && !isMoveIntoCheck (move);
     }
 
+auto Board::isEnPassant (const Move& move) const -> bool
+    {
+    const u8 piece = pieceAt ( move.fromCol, move.fromRow );
+    const u8 opponent = move.color == WHITE ? BLACK : WHITE;
+
+    // Moving piece must be a pawn 
+    if (piece != ( PAWN | move.color ))
+        return false;
+
+    // Last pawn to move must be a pawn 
+    const u8 lastPiece = pieceAt ( lastMove.toCol, lastMove.toRow );
+    if ( lastPiece != ( PAWN | opponent ))
+        return false;   
+
+    // Must be trying to take on the same column as the last move
+    if ( lastMove.toCol != move.toCol )
+        return false;
+
+    switch ( move.color )
+        {
+        case BLACK:
+            // Last move must be Pawn from 2nd rank to 4th rank (1-based)
+            if (lastMove.fromRow != 1 || lastMove.toRow != 3)
+                return false;
+            // And this move must be Pawn from the 4th rank to the 3rd rank (1-based)
+            if (move.fromRow != 3 || move.toRow != 2)
+                return false;
+            break;
+        case WHITE:
+            // Same as above, from white perspective
+            if (lastMove.fromRow != 6 || lastMove.toRow != 4)
+                return false;
+            // And this move must be Pawn from the 4th rank to the 3rd rank (1-based)
+            if (move.fromRow != 4 || move.toRow != 5)
+                return false;
+            break;
+        }
+    return true;
+    }
+
 auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
     {
     // Can't move nothing
@@ -200,7 +240,6 @@ auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
             {
             // Bit more complex for pawns.
             // Pawns can only move diagonally when capturing, and only 2 tiles from the initial square.
-
             const u8 color = piece & COLOR_MASK; 
             const int dir = getDir (move.fromRow, move.toRow); 
             if (color == WHITE && dir == -1) // White moving backwards
@@ -219,8 +258,17 @@ auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
 
             if (dcol) // Attacking
                 {
-                // Can only attack one square diagonally, and can only attack if there is a target
-                return dcol == 1 && drow == 1 && pieceAt (move.toCol, move.toRow) != EMPTY;
+                // Can only attack moving one row at a time, and can never move more than one column
+                if (dcol > 1 || drow != 1) 
+                    return false; 
+                
+                u8 target = pieceAt ( move.toCol, move.toRow );
+                if (target != EMPTY) 
+                    return true; // Attacking moving 1 column and 1 row, this is legal 
+
+                // If we're here, we're performing an attack on an empty square.
+                // The only way this is legal is if this is an en passant move...
+                return isEnPassant ( move );
                 }
             
             // Not attacking, so we can only move one or two spaces 
