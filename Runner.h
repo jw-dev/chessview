@@ -29,14 +29,13 @@ struct Runner
     virtual ~Runner();
 
     virtual auto run() -> void = 0;
-    
+    virtual auto reset() -> void;
 protected:
     std::unordered_map <u8, Player*> m_players;
     bool m_whiteMove;
 
     virtual auto board () -> Board& = 0;
     virtual auto doNewMove() -> void = 0;
-
     virtual auto tick() -> bool;
     virtual auto createDefaultBoard() -> void;
     };

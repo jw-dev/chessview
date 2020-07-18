@@ -20,9 +20,23 @@ Runner::~Runner()
             delete k.second;
     }
 
+auto Runner::reset() -> void 
+    {
+    createDefaultBoard();
+    gameState = STATE_NORMAL;
+    }
+
 auto Runner::createDefaultBoard () -> void
     {
     Board& b = board();
+
+    // Reset 
+    for (int row = 0; row < b.GRID_LENGTH; ++row)
+        for (int col = 0; col < b.GRID_LENGTH; ++col)
+            {
+            b.removePiece ( col, row );
+            }
+
     // Pawns 
     for (int row: {1, 6}) 
         for (int column = 0; column < 8; ++column)

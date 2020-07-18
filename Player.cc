@@ -1,43 +1,5 @@
 #include "Player.h"
 
-// List of available players
-static const std::map <std::string, std::function<Player*()>>
-    players = {
-                { "random",         makeRandom },
-                { "whitesquares",   makeWhiteSquares },
-                { "blacksquares",   makeBlackSquares },
-                { "min",            makeMinimizeOpponentMoves },
-                { "max",            makeMaximizeOpponentMoves },
-                { "min_self",       makeMinimizeOwnMoves },
-                { "max_self",       makeMaximizeOwnMoves },
-                { "defensive",      makeDefensive },
-                { "offensive",      makeOffensive },
-                { "suicidal",       makeSuicidal },
-                { "pacifist",       makePacifist },
-                { "edge",           makeClearPath },
-                { "centre",         makeCentre },
-                { "aggressive",     makeAggresive },
-                { "passive",        makePassive },
-                { "expensive",      makeExpensive },
-                { "cheap",          makeCheap },
-                { "far",            makeFar },
-                { "near",           makeNear },
-              };
-
-// Helper function to create a player from their name
-auto makePlayer (const std::string& arg) -> Player* 
-    {
-    if ( players.find (arg) != players.end() )
-        {
-        return players.at (arg) ();
-        }
-    else 
-        {
-        std::cerr << "Unknown player: " << arg << " (assuming random)" << std::endl;
-        return makeRandom ();
-        }
-    }
-
 // Eval Player
 
 auto EvalPlayer::getMove (Board& board) const -> Move 
