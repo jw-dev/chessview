@@ -24,11 +24,14 @@ White tries to move its pieces as close to the centre as possible; black tries t
 
 ### Command line 
 To run a game, specify which bots to play for both white and black sides:
-<pre>chess [-noui] white black</pre>
-* `-noui` option disables the UI and plays the game at fullspeed.
-* Options for `black` and `white` players are described below.
+<pre>chess [-tournament | [-headless] white black]</pre>
+* You must specify either: 
+    * `-tournament`, which runs a tournament among all players and records results.
+    * `white` `black`, which runs a single game with the specified players. 
+        * `-headless` option disables the UI for the game.
+        * Options for `black` and `white` players are described below.
 
-### Controls 
+### Controls (with single game mode)
 * **Space**: Play/pause the playback.
 * **Left**: When paused, steps backwards through the moves.
 * **Right**: When paused, steps forwards through moves. If user has undone some moves, this will playback the same moves; otherwise, new moves are selected from the players as normal.

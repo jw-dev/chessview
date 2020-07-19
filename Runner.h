@@ -48,8 +48,6 @@ struct RunnerUI final: public Runner
 
     auto run() -> void override;
 private:
-    const u8 TILE_SIZE = 8U;
-
     StateMgr <Board> m_boards;
     Viewer m_viewer;
 

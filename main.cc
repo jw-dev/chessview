@@ -46,7 +46,9 @@ auto makePlayer (const std::string& arg) -> std::unique_ptr<Player>
 
 struct Options 
     {
-    bool isValid, isNoUi, isTournament;
+    bool isValid = false;
+    bool isTournament = false;
+    bool isHeadless = false;
     std::string whiteName = "";
     std::string blackName = "";
     };
@@ -55,21 +57,21 @@ auto parseOpt ( int argc, char ** argv ) -> Options
     {
     Options opt;
     std::vector <std::string> args (argv, argv + argc);
-    if (args.size() <= 2) 
+
+    const auto find = 
+        [&args] (const char* match) -> bool 
+            {
+            return std::find(args.begin(), args.end(), match) != args.end();
+            };
+
+    opt.isTournament = find ( "-tournament" );
+    opt.isValid = opt.isTournament || args.size() >= 2;
+    opt.isHeadless = find ( "-headless" );
+
+    if (opt.isValid && !opt.isTournament)
         {
-        opt.isValid = false;
-        }
-    else 
-        {
-        static const auto find = 
-            [&args] (const std::string& match) -> bool
-                {
-                return std::find(args.begin(), args.end(), match) != args.end();
-                };
-        opt.isNoUi = find("-noui");
-        opt.isTournament = find("-tournament");
-        opt.whiteName = args.at (args.size() - 2 );
-        opt.blackName = args.at (args.size() - 1 );
+        opt.whiteName = args.at(args.size() - 2);
+        opt.blackName = args.at(args.size() - 1);
         }
     return opt;
     }
@@ -78,10 +80,13 @@ auto getRunner (const Options& opt) -> std::unique_ptr<Runner>
     {
     std::unique_ptr<Player> white = makePlayer ( opt.whiteName ),
                             black = makePlayer ( opt.blackName );
-    switch (opt.isNoUi)
+    if (opt.isHeadless)
         {
-        case true: return std::make_unique<RunnerStd> (std::move (white), std::move (black));
-        case false: return std::make_unique<RunnerUI> (std::move (white), std::move (black));
+        return std::make_unique<RunnerStd> (std::move (white), std::move (black));
+        }
+    else 
+        {
+        return std::make_unique<RunnerUI> (std::move (white), std::move (black));
         }
     }
 
