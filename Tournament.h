@@ -3,15 +3,17 @@
 #include <functional>
 #include "Runner.h" 
 
+using PlayerCreator = std::function<std::unique_ptr<Player>()>;
+
 struct Tournament final 
     {
-    Tournament (const std::map <std::string, std::function<Player*()>> &players);
+    Tournament (const std::map <std::string, PlayerCreator> &players);
     auto run() -> void;
 private:
-    const std::map<std::string, std::function<Player*()>>& m_players;
+    const std::map<std::string, PlayerCreator>& m_players;
     }; 
 
-Tournament::Tournament (const std::map <std::string, std::function<Player*()>> &players) 
+Tournament::Tournament (const std::map <std::string, PlayerCreator> &players) 
   : m_players { players } 
     {
 
@@ -19,39 +21,38 @@ Tournament::Tournament (const std::map <std::string, std::function<Player*()>> &
 
 auto Tournament::run() -> void
     {
+    static constexpr unsigned RUN_COUNT = 500;
+
     for (const auto& white_f: m_players)
         {
         for (const auto& black_f: m_players)
             {
-            int white_win = 0, black_win = 0, draw = 0;
+            std::map<u8, unsigned short> wins = {};
+            std::shared_ptr <Player> white = white_f.second(),
+                                     black = black_f.second();
+            RunnerStd runner { white, black };
 
-            std::cout << white_f.first << " v " << black_f.first << std::endl;
-            
-            Player* white = white_f.second(), *black = black_f.second();
-
-            for (int i = 0; i < 50; ++i)
+            for (unsigned int i = 0; i < RUN_COUNT; ++i)
                 {
-                RunnerStd runner { white, black };
-                // runner.reset();
+                runner.reset();
                 runner.run();
-                switch (runner.gameState)
-                    {
-                    case STATE_CHECKMATE:
-                        if (runner.winner == WHITE) 
-                            white_win++;
-                        else 
-                            black_win++;
-                        break;
-                    case STATE_STALEMATE_INSUFFICIENT_MATERIAL:
-                    case STATE_STALEMATE_NO_MOVES:
-                    case STATE_STALEMATE_STALE_MOVES:
-                        draw++;
-                        break;
-                    }   
-                }
-            std::cout << "white(" << white_win << ") black(" << black_win << ") draw (" << draw << ")" << std::endl;        
 
-            // delete black;
+                if (runner.gameState == STATE_CHECKMATE)
+                    {
+                    wins [runner.winner]++;
+                    }
+                }
+            std::cout << white_f.first 
+                      << " v " 
+                      << black_f.first 
+                      << ": white("
+                      << wins[WHITE]
+                      << ") black("
+                      << wins[BLACK]
+                      << ") draw(" 
+                      << RUN_COUNT - (wins[WHITE] + wins[BLACK])
+                      << ")"
+                      << std::endl;
             }
         }
     }

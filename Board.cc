@@ -19,6 +19,14 @@ Board::Board (const Board& other)
     lastMove = other.lastMove;
     }
 
+auto Board::reset() -> void 
+    {
+    for (auto& row: m_pieces) 
+        row = 0U;
+    for (auto& bits: m_bits)
+        bits.second = 0U;
+    }
+
 auto Board::pieceAt (u8 column, u8 row) const -> u8
     {
     // If we have a black pawn at column 1, then the row will look like 0b[...]00010000.

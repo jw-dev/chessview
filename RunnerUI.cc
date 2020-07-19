@@ -1,10 +1,14 @@
 #include "Runner.h"
 
-RunnerUI::RunnerUI (Player* white, Player* black)
-  : Runner { white, black },
-    m_boards {},
+RunnerUI::RunnerUI (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black)
+  : m_boards {},
     m_viewer { "chessview", 400, 400 }
     {
+    for (const u8 color: {WHITE, BLACK}) 
+        {
+        m_players [color] = (color == WHITE) ? white: black;
+        m_players [color]->setColor (color);
+        }
     (void) m_boards.create();
     createDefaultBoard();
     }
@@ -24,7 +28,7 @@ auto RunnerUI::doNewMove() -> void
     if (m_boards.atEnd()) 
         {
         Board& newBoard = m_boards.create();
-        Player* p = m_players [ m_whiteMove ? WHITE: BLACK ];
+        const std::shared_ptr<Player>& p = m_players [ m_whiteMove ? WHITE: BLACK ];
         if (p)
             {
             Move move = p->getMove ( newBoard );

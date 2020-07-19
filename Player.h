@@ -5,6 +5,7 @@
 #include <numeric>
 #include <functional>
 #include <map>
+#include <memory>
 #include "Board.h"
 #include "Move.h"
 
@@ -156,29 +157,26 @@ struct Near: EvalMovesPlayer
     auto evalMove (const Move& move) const -> u32 override;
     };
 
-
-Player* makePlayer (const std::string& name);
-
-Player* makeRandom();
-Player* makeWhiteSquares();
-Player* makeBlackSquares();
-Player* makeMinimizeOpponentMoves();
-Player* makeMaximizeOpponentMoves();
-Player* makeMinimizeOwnMoves();
-Player* makeMaximizeOwnMoves();
-Player* makeDefensive();
-Player* makeOffensive();
-Player* makeSuicidal();
-Player* makePacifist();
-Player* makeCheckmate();
-Player* makeClearPath();
-Player* makeCentre();
-Player* makeAggresive();
-Player* makePassive();
-Player* makeExpensive();
-Player* makeCheap();
-Player* makeFar();
-Player* makeNear();
+std::unique_ptr<Player> makeRandom();
+std::unique_ptr<Player> makeWhiteSquares();
+std::unique_ptr<Player> makeBlackSquares();
+std::unique_ptr<Player> makeMinimizeOpponentMoves();
+std::unique_ptr<Player> makeMaximizeOpponentMoves();
+std::unique_ptr<Player> makeMinimizeOwnMoves();
+std::unique_ptr<Player> makeMaximizeOwnMoves();
+std::unique_ptr<Player> makeDefensive();
+std::unique_ptr<Player> makeOffensive();
+std::unique_ptr<Player> makeSuicidal();
+std::unique_ptr<Player> makePacifist();
+std::unique_ptr<Player> makeCheckmate();
+std::unique_ptr<Player> makeClearPath();
+std::unique_ptr<Player> makeCentre();
+std::unique_ptr<Player> makeAggresive();
+std::unique_ptr<Player> makePassive();
+std::unique_ptr<Player> makeExpensive();
+std::unique_ptr<Player> makeCheap();
+std::unique_ptr<Player> makeFar();
+std::unique_ptr<Player> makeNear();
 
 // Defensive (move pieces out of danger)
 // Offensive (capture as much as possible)

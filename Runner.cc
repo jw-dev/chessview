@@ -1,41 +1,28 @@
 #include "Runner.h"
 
-Runner::Runner (Player* white, Player* black)
+Runner::Runner ()
   : gameState {STATE_NORMAL},
     winner {0},
     m_players {},
     m_whiteMove {true}
     {
-    for (const u8 color: {WHITE, BLACK}) 
-        {
-        m_players [color] = color == WHITE? white: black; 
-        m_players [color]->setColor (color);
-        }
     }
 
 Runner::~Runner() 
     {
-    for (const auto& k: m_players) 
-        if (k.second) 
-            delete k.second;
     }
 
 auto Runner::reset() -> void 
     {
     createDefaultBoard();
     gameState = STATE_NORMAL;
+    m_whiteMove = true;
     }
 
 auto Runner::createDefaultBoard () -> void
     {
     Board& b = board();
-
-    // Reset 
-    for (int row = 0; row < b.GRID_LENGTH; ++row)
-        for (int col = 0; col < b.GRID_LENGTH; ++col)
-            {
-            b.removePiece ( col, row );
-            }
+    b.reset();
 
     // Pawns 
     for (int row: {1, 6}) 

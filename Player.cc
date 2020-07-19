@@ -331,97 +331,97 @@ auto Far::evalMove (const Move& move) const -> u32
     return distance;
     }
 
-Player* makeRandom () 
+std::unique_ptr<Player> makeRandom () 
     {
-    return new RandomPlayer ();
+    return std::make_unique<RandomPlayer>();
     }
 
-Player* makeWhiteSquares() 
+std::unique_ptr<Player> makeWhiteSquares() 
     {
-    return new WhiteSquares ();
+    return std::make_unique<WhiteSquares>();
     }
 
-Player* makeBlackSquares()
+std::unique_ptr<Player> makeBlackSquares()
     {
-    return new BlackSquares();
+    return std::make_unique<BlackSquares>();
     }
 
-Player* makeMinimizeOpponentMoves()
+std::unique_ptr<Player> makeMinimizeOpponentMoves()
     {
-    return new MinimizeOpponentMoves();
+    return std::make_unique<MinimizeOpponentMoves>();
     }
 
-Player* makeMaximizeOpponentMoves()
+std::unique_ptr<Player> makeMaximizeOpponentMoves()
     {
-    return new MaximizeOpponentMoves();
+    return std::make_unique<MaximizeOpponentMoves>();
     }
 
-Player* makeMinimizeOwnMoves()
+std::unique_ptr<Player> makeMinimizeOwnMoves()
     {
-    return new MinimizeOwnMoves();
+    return std::make_unique<MinimizeOwnMoves>();
     }
 
-Player* makeMaximizeOwnMoves()
+std::unique_ptr<Player> makeMaximizeOwnMoves()
     {
-    return new MaximizeOwnMoves();
+    return std::make_unique<MaximizeOwnMoves>();
     }
 
-Player* makeDefensive()
+std::unique_ptr<Player> makeDefensive()
     {
-    return new Defensive();
+    return std::make_unique<Defensive>();
     }
 
-Player* makeOffensive()
+std::unique_ptr<Player> makeOffensive()
     {
-    return new Offensive();
+    return std::make_unique<Offensive>();
     }
 
-Player* makeSuicidal()
+std::unique_ptr<Player> makeSuicidal()
     {
-    return new Suicidal();
+    return std::make_unique<Suicidal>();
     }
 
-Player* makePacifist()
+std::unique_ptr<Player> makePacifist()
     {
-    return new Pacifist();
+    return std::make_unique<Pacifist>();
     }
 
-Player* makeClearPath()
+std::unique_ptr<Player> makeClearPath()
     {
-    return new ClearPath();
+    return std::make_unique<ClearPath>();
     }
 
-Player* makeCentre() 
+std::unique_ptr<Player> makeCentre() 
     {
-    return new Centre();
+    return std::make_unique<Centre>();
     }
 
-Player* makeAggresive()
+std::unique_ptr<Player> makeAggresive()
     {
-    return new Aggresive();
+    return std::make_unique<Aggresive>();
     }
 
-Player* makePassive()
+std::unique_ptr<Player> makePassive()
     {
-    return new Passive();
+    return std::make_unique<Passive>();
     }
 
-Player* makeExpensive()
+std::unique_ptr<Player> makeExpensive()
     {
-    return new Expensive();
+    return std::make_unique<Expensive>();
     }
 
-Player* makeCheap()
+std::unique_ptr<Player> makeCheap()
     {
-    return new Cheap();
+    return std::make_unique<Cheap>();
     }
 
-Player* makeFar()
+std::unique_ptr<Player> makeFar()
     {
-    return new Far();
+    return std::make_unique<Far>();
     }
 
-Player* makeNear()
+std::unique_ptr<Player> makeNear()
     {
-    return new Near();
+    return std::make_unique<Near>();
     }

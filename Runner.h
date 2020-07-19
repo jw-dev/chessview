@@ -25,13 +25,13 @@ struct Runner
     GameState gameState = STATE_NORMAL;
     u8 winner = 0U;
 
-    Runner(Player* white, Player* black);
+    Runner ();
     virtual ~Runner();
 
     virtual auto run() -> void = 0;
     virtual auto reset() -> void;
 protected:
-    std::unordered_map <u8, Player*> m_players;
+    std::unordered_map <u8, std::shared_ptr<Player>> m_players;
     bool m_whiteMove;
 
     virtual auto board () -> Board& = 0;
@@ -43,7 +43,7 @@ protected:
 
 struct RunnerUI final: public Runner 
     {
-    RunnerUI (Player* white, Player* black);
+    RunnerUI (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black);
     ~RunnerUI() override; 
 
     auto run() -> void override;
@@ -61,7 +61,7 @@ private:
 
 struct RunnerStd final: public Runner 
     {
-    RunnerStd (Player* white, Player* black);
+    RunnerStd (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black);
     ~RunnerStd() override;
 
     auto run() -> void override;
@@ -70,7 +70,6 @@ private:
 
     auto board() -> Board& override;
     auto doNewMove() -> void override;
-    
     };
 
 #endif

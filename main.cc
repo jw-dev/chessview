@@ -4,9 +4,10 @@
 #include "Player.h"
 #include "Tournament.h"
 
+using PlayerCreator = std::function<std::unique_ptr<Player>()>;
 
 // List of available players
-static const std::map <std::string, std::function<Player*()>>
+static const std::map <std::string, PlayerCreator>
     players = {
                 { "random",         makeRandom },
                 { "whitesquares",   makeWhiteSquares },
@@ -30,7 +31,7 @@ static const std::map <std::string, std::function<Player*()>>
               };
 
 // Helper function to create a player from their name
-auto makePlayer (const std::string& arg) -> Player* 
+auto makePlayer (const std::string& arg) -> std::unique_ptr<Player>
     {
     if ( players.find (arg) != players.end() )
         {
@@ -73,19 +74,16 @@ auto parseOpt ( int argc, char ** argv ) -> Options
     return opt;
     }
 
-auto getRunner (const Options& opt) -> Runner*
+auto getRunner (const Options& opt) -> std::unique_ptr<Runner> 
     {
-    Player * white = makePlayer (opt.whiteName), * black = makePlayer (opt.blackName);
-    if (opt.isNoUi)
+    std::unique_ptr<Player> white = makePlayer ( opt.whiteName ),
+                            black = makePlayer ( opt.blackName );
+    switch (opt.isNoUi)
         {
-        return new RunnerStd (white, black);
-        }
-    else 
-        {
-        return new RunnerUI (white, black);
+        case true: return std::make_unique<RunnerStd> (std::move (white), std::move (black));
+        case false: return std::make_unique<RunnerUI> (std::move (white), std::move (black));
         }
     }
-
 
 int main (int argc, char ** argv)
     {
@@ -103,6 +101,9 @@ int main (int argc, char ** argv)
         return EXIT_SUCCESS;
         }
 
-    Runner * runner = getRunner(opt);
-    runner->run();
+    auto runner = getRunner (opt);
+    if (runner)
+        {
+        runner->run();
+        }
     }

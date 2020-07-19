@@ -49,6 +49,9 @@ struct Board
     Board (const Board& other);
     auto operator=(const Board& other) =delete;
 
+    // Resets the board so there are no pieces, and all flags reset.
+    auto reset() -> void;
+
     // Returns the piece encoded as a u8 at the specified column and row.
     // Bitwise magic with PieceBits is required to extract information.
     auto pieceAt (u8 column, u8 row) const -> u8;
