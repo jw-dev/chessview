@@ -25,7 +25,7 @@ struct Runner
     GameState gameState = STATE_NORMAL;
     u8 winner = 0U;
 
-    Runner ();
+    Runner (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black);
     virtual ~Runner();
 
     virtual auto run() -> void = 0;

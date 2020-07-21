@@ -2,13 +2,9 @@
 
 RunnerUI::RunnerUI (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black)
   : m_boards {},
-    m_viewer { "chessview", 400, 400 }
+    m_viewer { "chessview", 400, 400 },
+    Runner { white, black }
     {
-    for (const u8 color: {WHITE, BLACK}) 
-        {
-        m_players [color] = (color == WHITE) ? white: black;
-        m_players [color]->setColor (color);
-        }
     (void) m_boards.create();
     createDefaultBoard();
     }

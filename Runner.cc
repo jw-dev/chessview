@@ -1,11 +1,16 @@
 #include "Runner.h"
 
-Runner::Runner ()
+Runner::Runner (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black)
   : gameState {STATE_NORMAL},
     winner {0},
     m_players {},
     m_whiteMove {true}
     {
+    for (const u8 color: {WHITE, BLACK}) 
+        {
+        m_players [color] = (color == WHITE) ? white: black;
+        m_players [color]->setColor (color);
+        }
     }
 
 Runner::~Runner() 

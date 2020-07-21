@@ -1,15 +1,9 @@
 #include "Runner.h"
 
 RunnerStd::RunnerStd (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black)
-  : m_board { }
+  : Runner { white, black },
+    m_board {} 
     {
-    assert ( white );
-    assert ( black );
-    for (const u8 color: {WHITE, BLACK}) 
-        {
-        m_players [color] = (color == WHITE) ? white: black;
-        m_players [color]->setColor (color);
-        }
     createDefaultBoard();
     }
 
