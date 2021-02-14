@@ -2,7 +2,6 @@
 #include <algorithm>
 #include "Runner.h"
 #include "Player.h"
-#include "Tournament.h"
 
 using PlayerCreator = std::function<std::unique_ptr<Player>()>;
 
@@ -95,15 +94,8 @@ int main (int argc, char ** argv)
     Options opt = parseOpt ( argc, argv );
     if (!opt.isValid) 
         {
-        std::cerr << "usage: " << argv[0] << " [-tournament | [-headless] white black]" << std::endl;
+        std::cerr << "usage: " << argv[0] << " [-headless] white black" << std::endl;
         return EXIT_FAILURE;
-        }
-
-    if (opt.isTournament) 
-        {
-        Tournament t { players };
-        t.run();
-        return EXIT_SUCCESS;
         }
 
     auto runner = getRunner (opt);
