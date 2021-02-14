@@ -95,7 +95,7 @@ int main (int argc, char ** argv)
     Options opt = parseOpt ( argc, argv );
     if (!opt.isValid) 
         {
-        std::cerr << "usage: " << argv[0] << " [-noui] white black" << std::endl;
+        std::cerr << "usage: " << argv[0] << " [-tournament | [-headless] white black]" << std::endl;
         return EXIT_FAILURE;
         }
 
