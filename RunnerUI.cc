@@ -2,7 +2,7 @@
 
 RunnerUI::RunnerUI (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black)
   : m_boards {},
-    m_viewer { "chessview", 400, 400 },
+    m_viewer { "chessview", 480, 480 },
     Runner { white, black }
     {
     (void) m_boards.create();

@@ -1,5 +1,12 @@
 #include "Viewer.h"
 
+namespace 
+    {
+    const Color LIGHT_COLOR = { 117, 102, 99, 255 };
+    const Color DARK_COLOR = { 142, 127, 114, 255 };
+    const Color LAST_MOVE_COLOR = { 102, 102, 0, 125 };
+    const Color ATTACKED_COLOR = { 255, 0, 0, 125 };
+    }
 
 Viewer::Viewer (const std::string& name, int width, int height)
   : m_width (width)
@@ -22,6 +29,19 @@ Viewer::Viewer (const std::string& name, int width, int height)
     
     SDL_SetRenderDrawBlendMode (m_renderer, SDL_BLENDMODE_BLEND);
 
+    initTextures ();
+    }
+
+Viewer::~Viewer () 
+    {
+    SDL_DestroyWindow ( m_window );
+    SDL_DestroyRenderer ( m_renderer );
+    IMG_Quit ();
+    SDL_Quit ();
+    }
+
+auto Viewer::initTextures () -> void 
+    {
     // Initialise textures
     for (u8 color: { BLACK, WHITE })
         for (u8 piece: { BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK, CASTLE })
@@ -50,25 +70,13 @@ Viewer::Viewer (const std::string& name, int width, int height)
                     m_pieceTextures [color | piece] = txt;
                 SDL_FreeSurface ( surface );
                 }
-            }    
+            } 
     }
 
-Viewer::~Viewer () 
-    {
-    SDL_DestroyWindow ( m_window );
-    SDL_DestroyRenderer ( m_renderer );
-    IMG_Quit ();
-    SDL_Quit ();
-    }
 
-auto Viewer::setColor (float r, float g, float b, float alpha) -> void
+auto Viewer::setColor ( Color c ) const -> void
     {
-    SDL_SetRenderDrawColor ( m_renderer, getFloatColor(r), getFloatColor(g), getFloatColor(b), getFloatColor(alpha) );
-    }
-
-auto Viewer::getFloatColor (float c) -> int
-    {
-    return static_cast<int>(std::floor(255.0f * c));
+    SDL_SetRenderDrawColor ( m_renderer, c.red, c.green, c.blue, c.alpha );
     }
 
 auto Viewer::draw (const Board& board) -> void
@@ -77,6 +85,7 @@ auto Viewer::draw (const Board& board) -> void
     SDL_RenderClear (m_renderer);
  
     const u8 tileSize = m_width / Board::GRID_LENGTH;
+    const Move& last = board.lastMove;
 
     static const auto getActualRow =
         [] (u8 y)
@@ -84,48 +93,37 @@ auto Viewer::draw (const Board& board) -> void
             return Board::GRID_LENGTH - 1 - y;
             };
 
-    const auto drawTile = 
-        [&board, &tileSize, this] (u8 x, u8 y) -> void
-            {
-            const u8 actualRow = getActualRow (y);
-            const u8 piece = board.pieceAt ( x, y );
-
-            // Rectangle to draw in 
-            const SDL_Rect tile { x * tileSize, actualRow * tileSize, tileSize, tileSize };
-
-            // Draw actual tile 
-            const float colorAlt = (x + y) & 1? 0.1f: 0.0f;
-            setColor ( 0.46f + colorAlt, 0.40f + colorAlt, 0.39f + colorAlt, 1.0f );
-
-            SDL_RenderFillRect ( m_renderer, &tile );
-
-            // Highlight tile, if it participated in the last move
-            const Move last = board.lastMove;
-            if ( (last.fromCol == x && last.fromRow == y) || (last.toCol == x && last.toRow == y) )
-                {
-                setColor ( 0.4f, 0.4f, 0.0f, 0.25f );
-                SDL_RenderFillRect ( m_renderer, &tile );
-                }
-            // Highlight tile (in red), if it is attacked and is a King (to signify check).
-            else if ( ((piece & Board::TYPE_MASK) == KING) && board.isAttacked (x, y) )
-                {
-                setColor ( 1.0f, 0.0f, 0.0f, 0.25f );
-                SDL_RenderFillRect ( m_renderer, &tile );
-                }
-
-            // Draw texture 
-            if ( piece && m_pieceTextures.find(piece) != m_pieceTextures.end() )
-                {
-                SDL_Texture* texture = m_pieceTextures [piece];
-                SDL_RenderCopy ( m_renderer, texture, NULL, &tile );
-                }
-            };
-
     for (u8 x = 0; x < Board::GRID_LENGTH; ++x)
         for (u8 y = 0; y < Board::GRID_LENGTH; ++y)
             {
-            drawTile (x, y);
-            }
+            const u8 row = getActualRow ( y );
+            const u8 piece = board.pieceAt ( x, y );
+            const SDL_Rect tile { x * tileSize, row * tileSize, tileSize, tileSize };
+            const Color& baseColor = (x + y) & 1? DARK_COLOR: LIGHT_COLOR;
 
+            // draw base tile 
+            setColor ( baseColor );
+            SDL_RenderFillRect ( m_renderer, &tile );
+
+            // if this tile participated in the last move, highlight it specially 
+            if ( ( last.fromCol == x && last.fromRow == y ) || ( last.toCol == x && last.toRow == y ) )
+                {
+                setColor ( LAST_MOVE_COLOR );
+                SDL_RenderFillRect ( m_renderer, &tile );
+                }
+            // highlight tile in red, if it is a king in check
+            else if ( ( piece & Board::TYPE_MASK ) == KING && board.isAttacked ( x, y ) ) 
+                {
+                setColor ( ATTACKED_COLOR );
+                SDL_RenderFillRect ( m_renderer, &tile );
+                }
+
+            // draw texture
+            if ( piece != Board::EMPTY )
+                {
+                SDL_Texture* texture = m_pieceTextures [ piece ];
+                SDL_RenderCopy ( m_renderer, texture, NULL, &tile );
+                }
+            }
     SDL_RenderPresent (m_renderer);
     }
