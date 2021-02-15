@@ -1,12 +1,11 @@
 #include "Runner.h"
 
 RunnerUI::RunnerUI (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black)
-  : m_boards {},
-    m_viewer { "chessview", 480, 480 },
+  : m_viewer { "chessview", 480, 480 },
     Runner { white, black }
     {
-    (void) m_boards.create();
-    createDefaultBoard();
+    m_states.emplace_back (); // create empty board
+    createDefaultBoard(); // populate board
     }
     
 RunnerUI::~RunnerUI() 
@@ -16,32 +15,32 @@ RunnerUI::~RunnerUI()
 
 auto RunnerUI::board() -> Board& 
     {
-    return m_boards.get();
+    return m_states[m_index];
     }
 
 auto RunnerUI::doNewMove() -> void 
     {
-    if (m_boards.atEnd()) 
+    if ( m_index == m_states.size() - 1 )
         {
-        Board& newBoard = m_boards.create();
+        Board& currentBoard = m_states.back ();
+        Board newBoard ( currentBoard );
+
         const std::shared_ptr<Player>& p = m_players [ m_whiteMove ? WHITE: BLACK ];
         if (p)
             {
             Move move = p->getMove ( newBoard );
             newBoard.doMove ( move );
             }
+        m_states.push_back ( newBoard );
         }
-    else 
-        {
-        m_boards.move(1);
-        }
+    m_index++;
     }
 
 auto RunnerUI::undo() -> void 
     {
-     if (!m_boards.atBeg())
+    if ( m_index ) 
         {
-        m_boards.move(-1);
+        m_index--;
         m_whiteMove = !m_whiteMove;
         gameState = STATE_NORMAL;
         }

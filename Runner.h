@@ -9,7 +9,6 @@
 #include "Board.h"
 #include "Viewer.h"
 #include "Player.h"
-#include "StateMgr.h"
 
 enum GameState 
     {
@@ -48,7 +47,9 @@ struct RunnerUI final: public Runner
 
     auto run() -> void override;
 private:
-    StateMgr <Board> m_boards;
+    std::vector <Board> m_states; 
+    std::size_t m_index = 0U;
+
     Viewer m_viewer;
 
     auto board() -> Board& override;
