@@ -1,6 +1,7 @@
 
 #include <sstream>
 #include <unordered_map>
+#include <algorithm>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include "Board.h"
@@ -18,10 +19,16 @@ struct Viewer
     bool operator= (const Viewer& other) = delete;
 
     auto draw (const Board& board) -> void; 
+    auto update () -> void; // updates current key presses 
+
+    auto isPressed ( int key ) const -> bool;
+    auto isQuit () const -> bool;
 protected: 
     SDL_Window *m_window = nullptr;
     SDL_Renderer *m_renderer = nullptr;
     std::unordered_map<u8, SDL_Texture*> m_pieceTextures = {};
+    std::vector<int> m_keys;
+    bool m_quit;
     int m_width;
 
     auto initTextures () -> void;

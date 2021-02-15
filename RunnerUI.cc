@@ -51,37 +51,27 @@ auto RunnerUI::run() -> void
     bool paused = false;
     for (;;)
         {
-        SDL_Event e; 
-        while ( SDL_PollEvent(&e) ) 
-            {
-            switch (e.type)
-                {
-                case SDL_KEYDOWN:
-                    switch (e.key.keysym.sym) 
-                        {
-                        case SDLK_LEFT: 
-                            if (paused) 
-                                undo();
-                            break;
-                        case SDLK_RIGHT:
-                            if (paused && gameState == STATE_NORMAL)
-                                tick();
-                            break;
-                        case SDLK_SPACE:
-                            paused = !paused;
-                            break;
-                        }
-                    break;
-                case SDL_QUIT:
-                    return;
-                }
-            }
-        if ( !paused && gameState == STATE_NORMAL )
-            {
-            tick();
-            }
+        m_viewer.update ();
+
+        // handle quit
+        if ( m_viewer.isQuit() )
+            return;
+
+        // handle pause 
+        if ( m_viewer.isPressed ( SDLK_SPACE ) ) 
+            paused = !paused;
+
+        // tick board state if unpaused, or if we're paused and moving forward in states
+        if ( gameState == STATE_NORMAL && ( !paused || m_viewer.isPressed ( SDLK_RIGHT ) ) )
+            tick ();
+        // handle undo if we are paused
+        else if ( paused && m_viewer.isPressed ( SDLK_LEFT ) ) 
+            undo ();
+            
+        // draw board
         m_viewer.draw ( board() );
+
         if (!paused) 
-            SDL_Delay ( 300 );
+            SDL_Delay ( 100 );
         }
     }

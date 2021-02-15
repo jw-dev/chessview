@@ -9,7 +9,9 @@ namespace
     }
 
 Viewer::Viewer (const std::string& name, int width, int height)
-  : m_width (width)
+  : m_keys (),
+    m_quit (false),
+    m_width (width)
     {
     SDL_Init (SDL_INIT_VIDEO);
     IMG_Init (IMG_INIT_PNG);
@@ -77,6 +79,39 @@ auto Viewer::initTextures () -> void
 auto Viewer::setColor ( Color c ) const -> void
     {
     SDL_SetRenderDrawColor ( m_renderer, c.red, c.green, c.blue, c.alpha );
+    }
+
+
+
+auto Viewer::update () -> void 
+    {
+    m_keys.clear ();
+
+    SDL_Event e; 
+    while ( SDL_PollEvent(&e) )
+        {
+        switch ( e.type )
+            {
+            case SDL_KEYDOWN:
+                m_keys.push_back (e.key.keysym.sym);
+                break;
+            case SDL_QUIT:
+                m_quit = true;
+                break;
+            default:
+                break;
+            }
+        }
+    }
+
+auto Viewer::isPressed ( int key ) const -> bool
+    {
+    return std::find ( m_keys.begin(), m_keys.end(), key ) != m_keys.end ();
+    }
+
+auto Viewer::isQuit () const -> bool
+    {
+    return m_quit;
     }
 
 auto Viewer::draw (const Board& board) -> void
