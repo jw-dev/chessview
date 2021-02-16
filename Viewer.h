@@ -11,6 +11,13 @@ struct Color
     u8 red, green, blue, alpha;
     };
 
+struct Mouse 
+    {
+    int x, y;
+    bool isGrabbed; // true if we've held lmb
+    int grabx, graby; // grab position
+    };
+
 struct Viewer 
     {
     Viewer (const std::string& name, int width, int height); 
@@ -30,7 +37,12 @@ protected:
     std::vector<int> m_keys;
     bool m_quit;
     int m_width;
+    Mouse m_mouse;
 
+    auto drawTiles ( const Board& board ) -> void;
+    auto drawPieces ( const Board& board ) -> void;
+
+    auto updateMouse () -> void;
     auto initTextures () -> void;
     auto setColor ( Color c ) const -> void;
     };

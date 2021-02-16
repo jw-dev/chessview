@@ -6,6 +6,7 @@ namespace
     const Color DARK_COLOR = { 142, 127, 114, 255 };
     const Color LAST_MOVE_COLOR = { 102, 102, 0, 125 };
     const Color ATTACKED_COLOR = { 255, 0, 0, 125 };
+    const Color HOVER_COLOR = { 172, 157, 144, 255 };
     }
 
 Viewer::Viewer (const std::string& name, int width, int height)
@@ -102,6 +103,7 @@ auto Viewer::update () -> void
                 break;
             }
         }
+    updateMouse ();
     }
 
 auto Viewer::isPressed ( int key ) const -> bool
@@ -114,24 +116,33 @@ auto Viewer::isQuit () const -> bool
     return m_quit;
     }
 
-auto Viewer::draw (const Board& board) -> void
+auto Viewer::updateMouse () -> void
     {
-    SDL_SetRenderDrawColor (m_renderer, 255, 255, 255, 255);
-    SDL_RenderClear (m_renderer);
- 
+    auto state = SDL_GetMouseState ( &m_mouse.x, &m_mouse.y );
+    if ( state & SDL_BUTTON(SDL_BUTTON_LEFT) ) // pressing lmb
+        {
+        if ( !m_mouse.isGrabbed )
+            {
+            m_mouse.isGrabbed = true;
+            m_mouse.grabx = m_mouse.x;
+            m_mouse.graby = m_mouse.y;
+            }
+        }
+    else // not pressing lmb
+        {
+        m_mouse.isGrabbed = false;
+        }
+    }
+
+auto Viewer::drawTiles ( const Board& board ) -> void
+    {
     const u8 tileSize = m_width / Board::GRID_LENGTH;
     const Move& last = board.lastMove;
 
-    static const auto getActualRow =
-        [] (u8 y)
+    for ( u8 x = 0; x < Board::GRID_LENGTH; ++x ) 
+        for ( u8 y = 0; y < Board::GRID_LENGTH; ++y )
             {
-            return Board::GRID_LENGTH - 1 - y;
-            };
-
-    for (u8 x = 0; x < Board::GRID_LENGTH; ++x)
-        for (u8 y = 0; y < Board::GRID_LENGTH; ++y)
-            {
-            const u8 row = getActualRow ( y );
+            const u8 row = Board::GRID_LENGTH - 1 - y;
             const u8 piece = board.pieceAt ( x, y );
             const SDL_Rect tile { x * tileSize, row * tileSize, tileSize, tileSize };
             const Color& baseColor = (x + y) & 1? DARK_COLOR: LIGHT_COLOR;
@@ -140,8 +151,14 @@ auto Viewer::draw (const Board& board) -> void
             setColor ( baseColor );
             SDL_RenderFillRect ( m_renderer, &tile );
 
+            // check for hovering over a tile
+            if ( m_mouse.x > tile.x && m_mouse.x <= tile.x + tileSize && m_mouse.y > tile.y && m_mouse.y <= tile.y + tileSize)
+                {
+                setColor ( HOVER_COLOR );
+                SDL_RenderFillRect ( m_renderer, &tile );
+                }
             // if this tile participated in the last move, highlight it specially 
-            if ( ( last.fromCol == x && last.fromRow == y ) || ( last.toCol == x && last.toRow == y ) )
+            else if  ( ( last.fromCol == x && last.fromRow == y ) || ( last.toCol == x && last.toRow == y ) )
                 {
                 setColor ( LAST_MOVE_COLOR );
                 SDL_RenderFillRect ( m_renderer, &tile );
@@ -152,13 +169,44 @@ auto Viewer::draw (const Board& board) -> void
                 setColor ( ATTACKED_COLOR );
                 SDL_RenderFillRect ( m_renderer, &tile );
                 }
-
-            // draw texture
-            if ( piece != Board::EMPTY )
+            }
+    }
+    
+auto Viewer::drawPieces ( const Board& board ) -> void
+    {
+    const u8 tileSize = m_width / Board::GRID_LENGTH;
+    for ( u8 x = 0; x < Board::GRID_LENGTH; ++x ) 
+        for ( u8 y = 0; y < Board::GRID_LENGTH; ++y )
+            {
+            const u8 row = Board::GRID_LENGTH - 1 - y;
+            const u8 piece = board.pieceAt ( x, y );
+            SDL_Rect tile { x * tileSize, row * tileSize, tileSize, tileSize };
+            
+            if ( piece != Board::EMPTY ) 
                 {
                 SDL_Texture* texture = m_pieceTextures [ piece ];
+                // check for if we're grabbing this piece 
+                if ( m_mouse.isGrabbed ) 
+                    {
+                    const u8 gridGrabX = m_mouse.grabx / tileSize;
+                    const u8 gridGrabY = Board::GRID_LENGTH - 1 - (m_mouse.graby / tileSize);
+                    if ( x == gridGrabX && y == gridGrabY )
+                        {
+                        // move draw position for texture 
+                        tile.x = m_mouse.x - (m_mouse.grabx - tile.x) ;
+                        tile.y = m_mouse.y - (m_mouse.graby - tile.y) ;
+                        }
+                    }
                 SDL_RenderCopy ( m_renderer, texture, NULL, &tile );
                 }
             }
+    }
+
+auto Viewer::draw (const Board& board) -> void
+    {
+    SDL_SetRenderDrawColor (m_renderer, 255, 255, 255, 255);
+    SDL_RenderClear (m_renderer);
+    drawTiles ( board );
+    drawPieces ( board );
     SDL_RenderPresent (m_renderer);
     }
