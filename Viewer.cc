@@ -145,30 +145,28 @@ auto Viewer::drawTiles ( const Board& board ) -> void
             const u8 row = Board::GRID_LENGTH - 1 - y;
             const u8 piece = board.pieceAt ( x, y );
             const SDL_Rect tile { x * tileSize, row * tileSize, tileSize, tileSize };
-            const Color& baseColor = (x + y) & 1? DARK_COLOR: LIGHT_COLOR;
-
-            // draw base tile 
-            setColor ( baseColor );
-            SDL_RenderFillRect ( m_renderer, &tile );
-
+            
             // check for hovering over a tile
             if ( m_mouse.x > tile.x && m_mouse.x <= tile.x + tileSize && m_mouse.y > tile.y && m_mouse.y <= tile.y + tileSize)
                 {
                 setColor ( HOVER_COLOR );
-                SDL_RenderFillRect ( m_renderer, &tile );
                 }
             // if this tile participated in the last move, highlight it specially 
             else if  ( ( last.fromCol == x && last.fromRow == y ) || ( last.toCol == x && last.toRow == y ) )
                 {
                 setColor ( LAST_MOVE_COLOR );
-                SDL_RenderFillRect ( m_renderer, &tile );
                 }
             // highlight tile in red, if it is a king in check
             else if ( ( piece & Board::TYPE_MASK ) == KING && board.isAttacked ( x, y ) ) 
                 {
                 setColor ( ATTACKED_COLOR );
-                SDL_RenderFillRect ( m_renderer, &tile );
                 }
+            // default, no special activity 
+            else 
+                {
+                setColor ( (x + y) & 1? DARK_COLOR: LIGHT_COLOR );
+                }
+            SDL_RenderFillRect ( m_renderer, &tile );
             }
     }
     
