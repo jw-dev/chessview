@@ -12,7 +12,8 @@ namespace
 Viewer::Viewer (const std::string& name, int width, int height)
   : m_keys (),
     m_quit (false),
-    m_width (width)
+    m_width (width),
+    m_mouse ()
     {
     SDL_Init (SDL_INIT_VIDEO);
     IMG_Init (IMG_INIT_PNG);
@@ -145,7 +146,7 @@ auto Viewer::drawTiles ( const Board& board ) -> void
             const u8 row = Board::GRID_LENGTH - 1 - y;
             const u8 piece = board.pieceAt ( x, y );
             const SDL_Rect tile { x * tileSize, row * tileSize, tileSize, tileSize };
-            
+
             // check for hovering over a tile
             if ( m_mouse.x > tile.x && m_mouse.x <= tile.x + tileSize && m_mouse.y > tile.y && m_mouse.y <= tile.y + tileSize)
                 {

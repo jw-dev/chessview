@@ -1,8 +1,9 @@
 #include "Runner.h"
 
 RunnerUI::RunnerUI (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black)
-  : m_viewer { "chessview", 480, 480 },
-    Runner { white, black }
+  : Runner { white, black },
+    m_states {},
+    m_viewer { "chessview", 480, 480 }
     {
     m_states.emplace_back (); // create empty board
     createDefaultBoard(); // populate board
