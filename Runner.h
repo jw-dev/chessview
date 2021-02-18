@@ -24,6 +24,7 @@ struct Runner
     GameState gameState = STATE_NORMAL;
     u8 winner = 0U;
 
+    Runner (const std::shared_ptr<Player>& black);
     Runner (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black);
     virtual ~Runner();
 
@@ -42,6 +43,7 @@ protected:
 
 struct RunnerUI final: public Runner 
     {
+    RunnerUI (const std::shared_ptr<Player>& black);
     RunnerUI (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black);
     ~RunnerUI() override; 
 
@@ -51,6 +53,7 @@ private:
     std::size_t m_index = 0U;
 
     Viewer m_viewer;
+    bool m_paused = false;
 
     auto board() -> Board& override;
     auto doNewMove() -> void override;

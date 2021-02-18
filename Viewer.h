@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <functional>
 #include "Board.h"
 
 struct Color 
@@ -15,6 +16,7 @@ struct Mouse
     {
     int x, y;
     bool isGrabbed; // true if we've held lmb
+    bool isReleased; // true if we've just released lmb
     int grabx, graby; // grab position
     };
 
@@ -25,11 +27,14 @@ struct Viewer
     Viewer (const Viewer& other) = delete;
     bool operator= (const Viewer& other) = delete;
 
-    auto draw (const Board& board) -> void; 
+    auto draw ( Board& board) -> void; 
     auto update () -> void; // updates current key presses 
 
     auto isPressed ( int key ) const -> bool;
     auto isQuit () const -> bool;
+
+    std::function<void(Move&)> onNewMove;
+
 protected: 
     SDL_Window *m_window = nullptr;
     SDL_Renderer *m_renderer = nullptr;
@@ -41,6 +46,7 @@ protected:
 
     auto drawTiles ( const Board& board ) -> void;
     auto drawPieces ( const Board& board ) -> void;
+    auto doMovement () -> void;
 
     auto updateMouse () -> void;
     auto initTextures () -> void;

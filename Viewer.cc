@@ -120,6 +120,8 @@ auto Viewer::isQuit () const -> bool
 auto Viewer::updateMouse () -> void
     {
     auto state = SDL_GetMouseState ( &m_mouse.x, &m_mouse.y );
+    m_mouse.isReleased = false;
+
     if ( state & SDL_BUTTON(SDL_BUTTON_LEFT) ) // pressing lmb
         {
         if ( !m_mouse.isGrabbed )
@@ -131,6 +133,8 @@ auto Viewer::updateMouse () -> void
         }
     else // not pressing lmb
         {
+        if ( m_mouse.isGrabbed ) 
+            m_mouse.isReleased = true;
         m_mouse.isGrabbed = false;
         }
     }
@@ -201,11 +205,28 @@ auto Viewer::drawPieces ( const Board& board ) -> void
             }
     }
 
-auto Viewer::draw (const Board& board) -> void
+auto Viewer::doMovement () -> void
+    {
+    if ( !onNewMove )
+        return;
+
+    const u8 tileSize = m_width / Board::GRID_LENGTH;
+    const u8 fromCol = m_mouse.grabx / tileSize;
+    const u8 toCol = m_mouse.x / tileSize;
+    const u8 fromRow = Board::GRID_LENGTH - 1 - (m_mouse.graby / tileSize);
+    const u8 toRow = Board::GRID_LENGTH - 1 - (m_mouse.y / tileSize);
+    
+    Move m { fromCol, toCol, fromRow, toRow };
+    onNewMove ( m );
+    }
+
+auto Viewer::draw (Board& board) -> void
     {
     SDL_SetRenderDrawColor (m_renderer, 255, 255, 255, 255);
     SDL_RenderClear (m_renderer);
     drawTiles ( board );
     drawPieces ( board );
+    if ( m_mouse.isReleased ) 
+        doMovement ();
     SDL_RenderPresent (m_renderer);
     }

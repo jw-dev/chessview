@@ -3,7 +3,11 @@
 #include "Runner.h"
 #include "Player.h"
 
+
+
 using PlayerCreator = std::function<std::unique_ptr<Player>()>;
+
+static std::string programName;
 
 // List of available players
 static const std::map <std::string, PlayerCreator>
@@ -29,8 +33,16 @@ static const std::map <std::string, PlayerCreator>
                 { "near",           makeNear },
               };
 
+static void error ( const std::string& msg ) 
+    {
+    std::cerr << msg 
+              << std::endl 
+              << "usage: " << programName << " [-headless] white black" 
+              << std::endl;
+    }
+
 // Helper function to create a player from their name
-auto makePlayer (const std::string& arg) -> std::unique_ptr<Player>
+static auto makePlayer (const std::string& arg) -> std::unique_ptr<Player>
     {
     if ( players.find (arg) != players.end() )
         {
@@ -43,64 +55,62 @@ auto makePlayer (const std::string& arg) -> std::unique_ptr<Player>
         }
     }
 
-struct Options 
+
+static std::size_t numPlayers ( const std::vector<std::string>& args )
     {
-    bool isValid = false;
-    bool isTournament = false;
-    bool isHeadless = false;
-    std::string whiteName = "";
-    std::string blackName = "";
-    };
+    std::size_t players = 0;
 
-auto parseOpt ( int argc, char ** argv ) -> Options
-    {
-    Options opt;
-    std::vector <std::string> args (argv, argv + argc);
-
-    const auto find = 
-        [&args] (const char* match) -> bool 
-            {
-            return std::find(args.begin(), args.end(), match) != args.end();
-            };
-
-    opt.isTournament = find ( "-tournament" );
-    opt.isValid = opt.isTournament || args.size() >= 2;
-    opt.isHeadless = find ( "-headless" );
-
-    if (opt.isValid && !opt.isTournament)
+    for ( int i = 1; i < args.size(); ++i )
         {
-        opt.whiteName = args.at(args.size() - 2);
-        opt.blackName = args.at(args.size() - 1);
+        const std::string& arg = args.at ( i );
+        if ( arg[0] == '-' ) continue;
+        players++;
         }
-    return opt;
+    return players;
     }
 
-auto getRunner (const Options& opt) -> std::unique_ptr<Runner> 
+static bool findArg ( const std::vector<std::string>& args, const std::string& needle )
     {
-    std::unique_ptr<Player> white = makePlayer ( opt.whiteName ),
-                            black = makePlayer ( opt.blackName );
-    if (opt.isHeadless)
-        {
-        return std::make_unique<RunnerStd> (std::move (white), std::move (black));
-        }
-    else 
-        {
-        return std::make_unique<RunnerUI> (std::move (white), std::move (black));
-        }
+    return std::find ( args.begin(), args.end(), needle ) != args.end();
     }
 
 int main (int argc, char ** argv)
     {
-    Options opt = parseOpt ( argc, argv );
-    if (!opt.isValid) 
+    std::vector<std::string> args (argv, argv + argc);
+
+    programName = argv[0];
+    bool isHeadless = findArg ( args, "-headless" );
+    int players = numPlayers ( args );
+    std::unique_ptr <Runner> runner;
+
+    switch ( players ) 
         {
-        std::cerr << "usage: " << argv[0] << " [-headless] white black" << std::endl;
-        return EXIT_FAILURE;
+        case 1: 
+            {
+            if ( isHeadless ) 
+                error ( "headless requires two players to be provided" );
+            auto white = makePlayer ( args.back() );
+            runner = std::make_unique<RunnerUI> ( std::move( white ) );
+            break;
+            }
+        case 2:
+            {
+            auto black = makePlayer ( args.back() );
+            auto white = makePlayer ( args.at ( args.size() - 2 ) );
+            if ( isHeadless ) runner = std::make_unique<RunnerStd> ( std::move( white ), std::move( black ) ); 
+            else              runner = std::make_unique<RunnerUI> ( std::move( white ), std::move( black ) ); 
+            break;
+            }
+        default: 
+            {
+            if ( !players ) error ( "one or more players must be provided" );
+            else            error ( "unexpected argument" );
+            return EXIT_FAILURE;
+            }
         }
 
-    auto runner = getRunner (opt);
-    if (runner)
+    if ( runner )
         {
-        runner->run();
+        runner->run ();
         }
     }

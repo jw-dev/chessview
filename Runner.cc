@@ -13,6 +13,17 @@ Runner::Runner (const std::shared_ptr<Player>& white, const std::shared_ptr<Play
         }
     }
 
+Runner::Runner (const std::shared_ptr<Player>& black)
+  : gameState {STATE_NORMAL},
+    winner {0},
+    m_players {},
+    m_whiteMove {true}
+    {
+    black->color = BLACK;
+    m_players [ BLACK ] = black;
+    m_players [ WHITE ] = nullptr;
+    }
+
 Runner::~Runner() 
     {
     }
@@ -53,7 +64,9 @@ auto Runner::createDefaultBoard () -> void
 
 auto Runner::tick() -> bool 
     {
-    if (gameState == STATE_NORMAL)
+    const u8 player = m_whiteMove ? WHITE: BLACK;
+
+    if ( gameState == STATE_NORMAL )
         {
         const u8 player = m_whiteMove ? WHITE: BLACK;
         Board& b = board();
@@ -67,11 +80,10 @@ auto Runner::tick() -> bool
             {
             gameState = STATE_STALEMATE_NO_MOVES; // TODO
             }
-        else 
+        else if ( m_players[player] != nullptr )
             {
             doNewMove();
             }
-        m_whiteMove = !m_whiteMove;
         }
     return gameState == STATE_NORMAL;
     }
