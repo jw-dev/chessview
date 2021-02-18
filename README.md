@@ -24,8 +24,10 @@ White tries to move its pieces as close to the centre as possible; black tries t
 
 ### Command line 
 To run a game, specify which bots to play for both white and black sides:
-<pre>chess [-headless] white black</pre>
-* You must specify `white` and `black`, which runs a single game with the specified players. 
+<pre>chess [-headless] [white] black</pre>
+* If running headless, you must specify both white and black.
+* If using the UI, you can specify only black; you will play as white.
+* A game will be run with the specified players.
     * `-headless` option disables the UI for the game.
     * Options for `black` and `white` players are described below.
 
@@ -69,7 +71,7 @@ To run a game, specify which bots to play for both white and black sides:
 * ~~Pawn promotion. Pawns currently automatically promote to Queens.~~
 * Threefold repetition stalemate [rule](https://en.wikipedia.org/wiki/Threefold_repetition).
 * Support for PGN string imports (to watch existing games).
-* Player interaction (e.g. player vs. bot).
+* ~~Player interaction (e.g. player vs. bot).~~
 * ~~Ability to specify which bots to play on the command line.~~
 * Competition between bots.
 * Recording of games to files (probably in PGN notation).
