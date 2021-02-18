@@ -110,6 +110,7 @@ auto EvalPiecePlayer::getMove (Board& board) const -> Move
             selected.push_back (move);
             }
         }
+    m_move++;
     return getRandom (selected);
     }
 
@@ -331,6 +332,18 @@ auto Far::evalMove (const Move& move) const -> u32
     return distance;
     }
 
+auto BongCloud::evalPiece (u8 piece, u8 column, u8 row) const -> u8
+    {
+    u8 type = piece & Board::TYPE_MASK;
+    u8 ret = 0U;
+
+    if ( m_move == 0 && type == PAWN && ( column == 3 || column == 4) ) 
+        ret = UINT8_MAX;
+    else if ( m_move == 1 && type == KING )
+        ret = UINT8_MAX;
+    return ret;
+    }
+
 std::unique_ptr<Player> makeRandom () 
     {
     return std::make_unique<RandomPlayer>();
@@ -424,4 +437,9 @@ std::unique_ptr<Player> makeFar()
 std::unique_ptr<Player> makeNear()
     {
     return std::make_unique<Near>();
+    }
+
+std::unique_ptr<Player> makeBongCloud()
+    {
+    return std::make_unique<BongCloud>();
     }

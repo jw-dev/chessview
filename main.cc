@@ -31,6 +31,7 @@ static const std::map <std::string, PlayerCreator>
                 { "cheap",          makeCheap },
                 { "far",            makeFar },
                 { "near",           makeNear },
+                { "bongcloud",      makeBongCloud },
               };
 
 static void error ( const std::string& msg ) 

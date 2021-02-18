@@ -54,8 +54,9 @@ struct EvalPiecePlayer: public Player
     {
     virtual auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 = 0; // Must return a value 0-255 (higher is better)
     auto getMove (Board& board) const -> Move override;
+    protected:
+        mutable int m_move;
     }; 
-
 
 struct RandomPlayer: Player 
     {
@@ -157,6 +158,11 @@ struct Near: EvalMovesPlayer
     auto evalMove (const Move& move) const -> u32 override;
     };
 
+struct BongCloud: EvalPiecePlayer
+    {
+    auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
+    };
+
 std::unique_ptr<Player> makeRandom();
 std::unique_ptr<Player> makeWhiteSquares();
 std::unique_ptr<Player> makeBlackSquares();
@@ -177,6 +183,7 @@ std::unique_ptr<Player> makeExpensive();
 std::unique_ptr<Player> makeCheap();
 std::unique_ptr<Player> makeFar();
 std::unique_ptr<Player> makeNear();
+std::unique_ptr<Player> makeBongCloud();
 
 // Defensive (move pieces out of danger)
 // Offensive (capture as much as possible)

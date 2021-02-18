@@ -59,6 +59,7 @@ To run a game, specify which bots to play for both white and black sides:
 |`cheap`|Prefer moving the lowest value piece.|
 |`far`|Tries to move the furthest distance every move.|
 |`near`|Tries to move the shortest distance every move.|
+|`bongcloud`|Opens with bongcloud (move pawn, then King) and then plays randomly.|
 
 ## Features
 * Generates all legal moves for all pieces, allowing bots to rank them.
