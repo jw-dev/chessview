@@ -27,6 +27,16 @@ enum PieceBits
     WHITE = 8, 
     };
 
+// Board state. 
+enum BoardState 
+    {
+    STATE_NORMAL,
+    STATE_CHECKMATE,
+    STATE_STALEMATE,
+    STATE_FORCED_DRAW_INSUFFICIENT_MATERIAL,
+    STATE_FORCED_DRAW_FIFTY_MOVES,
+    };
+
 // Holds board state. 
 // Board state is held in m_pieces. 
 struct Board 
@@ -85,12 +95,6 @@ struct Board
     // Returns whether the specified player is currently in check (King is attacked by a piece).
     auto isCheck (u8 color) -> bool;
 
-    // Returns whether the specified player is currently in checkmate (King is attacked and zero moves).
-    auto isCheckmate (u8 color) -> bool;
-
-    // Returns whether the specified player is in a stalemate situation (Zero moves, stale moves, or insufficient material for checkmate).
-    auto isStalemate (u8 color) -> bool;
-
     // Returns whether the tile is attacked by an opponent's piece. 
     // Note we don't specify a player here; the piece at the target is taken as the defender.
     auto isAttacked (u8 column, u8 row) const -> bool;
@@ -100,6 +104,9 @@ struct Board
 
     // Returns true if the move is an en passant capture.
     auto isEnPassant (const Move& move) const -> bool; 
+    
+    // Returns the current board state, depending on whose turn it is.
+    auto getBoardState (u8 player) -> BoardState;
 
     // Try a move and then revert the board state.
     // The function f() is a user-specified function to check the board state.

@@ -40,6 +40,7 @@ static void error ( const std::string& msg )
               << std::endl 
               << "usage: " << programName << " [-headless] white black" 
               << std::endl;
+    exit ( EXIT_FAILURE );
     }
 
 // Helper function to create a player from their name
@@ -90,16 +91,16 @@ int main (int argc, char ** argv)
             {
             if ( isHeadless ) 
                 error ( "headless requires two players to be provided" );
-            auto white = makePlayer ( args.back() );
-            runner = std::make_unique<RunnerUI> ( std::move( white ) );
+            runner = std::make_unique<RunnerUI> ();
+            runner->addPlayer ( BLACK, makePlayer ( args.back() ) );
             break;
             }
         case 2:
             {
-            auto black = makePlayer ( args.back() );
-            auto white = makePlayer ( args.at ( args.size() - 2 ) );
-            if ( isHeadless ) runner = std::make_unique<RunnerStd> ( std::move( white ), std::move( black ) ); 
-            else              runner = std::make_unique<RunnerUI> ( std::move( white ), std::move( black ) ); 
+            if ( isHeadless ) runner = std::make_unique<RunnerStd> (); 
+            else              runner = std::make_unique<RunnerUI> (); 
+            runner->addPlayer ( WHITE, makePlayer ( args.at ( args.size() - 2 ) ) );
+            runner->addPlayer ( BLACK, makePlayer ( args.back() ) );
             break;
             }
         default: 

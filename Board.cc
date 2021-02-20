@@ -331,33 +331,21 @@ auto Board::doMove (const Move& move) -> bool
     return moveLegal;
     }
 
-auto Board::isCheckmate (u8 color) -> bool
+auto Board::getBoardState (u8 player) -> BoardState 
     {
-    // Checkmate: player is in check and has no moves remaining.
-    bool checkMate = isCheck (color) && hasZeroMoves (color);
-    // if (checkMate) 
-    //     std::cout << "Checkmate : " << (color == WHITE? "Black" : "White") << " wins" << std::endl; //DEBUG
-    return checkMate;
-    }
-
-auto Board::isStalemate (u8 color) -> bool
-    {
-    // Stalemate 1: Player has no legal moves remaining, and is not in check.
-    if (!isCheck (color) && hasZeroMoves (color))
+    // zero moves 
+    if ( hasZeroMoves ( player ) ) 
         {
-        // std::cout << "Stalemate : zero moves." << std::endl; //DEBUG
-        return true; 
+        // if zero moves and in check, that's checkmate - otherwise stalemate 
+        return isCheck ( player ) ? STATE_CHECKMATE : STATE_STALEMATE;
         }
-        
-
-    // Stalemate 2: There has been 0 captures or pawn moves in the last 50 moves.
-    if ( (m_bits[WHITE] & STALE_MASK) >= 50 && (m_bits[BLACK] & STALE_MASK) >= 50 )
+    // 50 moves without capture or pawn move
+    else if ( (m_bits[WHITE] & STALE_MASK) >= 50 && (m_bits[BLACK] & STALE_MASK) >= 50 )
         {
-        // std::cout << "Stalemate : 50 stale moves." << std::endl;
-        return true;
+        return STATE_FORCED_DRAW_FIFTY_MOVES;
         }
-    
-    // Stalemate 3: if the players have insufficient material, then we cannot checkmate, and the result must be a draw.
+    // check all piece types on the board (except king)
+    // if we only have kings, or king v king + bishop or king v king + knight then it's a forced draw
     std::vector<u8> types; 
     for (u8 c = 0; c < GRID_LENGTH; ++c) 
         for (u8 r = 0; r < GRID_LENGTH; ++r)
@@ -366,21 +354,18 @@ auto Board::isStalemate (u8 color) -> bool
             if (type != KING) 
                 types.push_back ( type );
             }
-    switch (types.size()) 
+    if ( types.size() == 1 ) 
+        return STATE_FORCED_DRAW_INSUFFICIENT_MATERIAL; 
+    else if ( types.size() == 2 )
         {
-        case 0: // King vs King 
-            // std::cout << "Stalemate : two kings" << std::endl;
-            return true;
-        case 1: // King vs King and Bishop or King vs King and Knight
-            u8 type = types[0]; 
-            if (type == BISHOP || type == KNIGHT) 
-                {
-                // std::cout << "Stalemate : insufficient material." << std::endl;
-                return true;
-                }
-            break;
+        // check piece types 
+        u8 type = types.at ( 0 );
+        if ( type == BISHOP || type == KNIGHT )
+            return STATE_FORCED_DRAW_INSUFFICIENT_MATERIAL;
         }
-    return false;
+   
+    // else normal
+    return STATE_NORMAL;
     }
 
 auto Board::forceDoMove(const Move & move) -> void 

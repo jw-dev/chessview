@@ -1,44 +1,16 @@
 #include "Runner.h"
 
-Runner::Runner (const std::shared_ptr<Player>& white, const std::shared_ptr<Player>& black)
-  : gameState {STATE_NORMAL},
-    winner {0},
-    m_players {},
-    m_whiteMove {true}
+auto Runner::addPlayer ( u8 color, std::unique_ptr<Player>&& player ) -> void
     {
-    for (const u8 color: {WHITE, BLACK}) 
-        {
-        m_players [color] = (color == WHITE) ? white: black;
-        m_players [color]->setColor (color);
-        }
+    assert ( color == BLACK || color == WHITE );
+    player->color = color;
+    m_players [color] = std::move ( player );
     }
 
-Runner::Runner (const std::shared_ptr<Player>& black)
-  : gameState {STATE_NORMAL},
-    winner {0},
-    m_players {},
-    m_whiteMove {true}
+auto Runner::createDefaultBoard () -> void 
     {
-    black->color = BLACK;
-    m_players [ BLACK ] = black;
-    m_players [ WHITE ] = nullptr;
-    }
-
-Runner::~Runner() 
-    {
-    }
-
-auto Runner::reset() -> void 
-    {
-    createDefaultBoard();
-    gameState = STATE_NORMAL;
-    m_whiteMove = true;
-    }
-
-auto Runner::createDefaultBoard () -> void
-    {
-    Board& b = board();
-    b.reset();
+    Board& b = getBoard ();
+    b.reset ();
 
     // Pawns 
     for (int row: {1, 6}) 
@@ -62,28 +34,27 @@ auto Runner::createDefaultBoard () -> void
         }
     }
 
-auto Runner::tick() -> bool 
+auto Runner::doMove ( Board& b, Move& m ) -> void
     {
-    const u8 player = m_whiteMove ? WHITE: BLACK;
+    const u8 player = m_whiteMove? WHITE: BLACK;
+    const bool valid = b.doMove ( m );
 
-    if ( gameState == STATE_NORMAL )
+    if ( !valid )
+        throw std::runtime_error ("player attempted an illegal move");
+
+    m_whiteMove = !m_whiteMove;
+    m_state = b.getBoardState ( player );
+    }
+
+auto Runner::run () -> void 
+    {
+    Board& board = getBoard ();
+    board.reset ();
+    createDefaultBoard ();
+
+    for (;;)
         {
-        const u8 player = m_whiteMove ? WHITE: BLACK;
-        Board& b = board();
-
-        if (b.isCheckmate (player)) 
-            {
-            gameState = STATE_CHECKMATE;
-            winner = m_whiteMove ? BLACK: WHITE; // Reversed
-            }
-        else if (b.isStalemate (player)) 
-            {
-            gameState = STATE_STALEMATE_NO_MOVES; // TODO
-            }
-        else if ( m_players[player] != nullptr )
-            {
-            doNewMove();
-            }
+        if ( tick() )
+            return;
         }
-    return gameState == STATE_NORMAL;
     }
