@@ -37,13 +37,14 @@ auto Runner::createDefaultBoard () -> void
 auto Runner::doMove ( Board& b, Move& m ) -> void
     {
     const u8 player = m_whiteMove? WHITE: BLACK;
+    const u8 opponent = player == WHITE ? BLACK: WHITE ;
     const bool valid = b.doMove ( m );
 
     if ( !valid )
         throw std::runtime_error ("player attempted an illegal move");
 
     m_whiteMove = !m_whiteMove;
-    m_state = b.getBoardState ( player );
+    m_state = b.getBoardState ( opponent );
     }
 
 auto Runner::run () -> void 
