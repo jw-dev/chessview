@@ -66,11 +66,13 @@ auto RunnerUI::tick () -> bool
                 std::cout << "doing move for player: " << m_whiteMove << std::endl;
                 Move move = p->getMove ( newBoard );
                 doMove ( newBoard, move );
-
                 m_states.push_back ( newBoard );
                 m_index++;
                 }
             }
+        else if ( m_index < m_states.size() - 1 )
+            m_index++;
+        
         }
     // handle undo if we are paused
     else if ( m_paused && m_viewer.isPressed ( SDLK_LEFT ) ) 
