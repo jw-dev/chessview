@@ -55,7 +55,7 @@ struct EvalPiecePlayer: public Player
     virtual auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 = 0; // Must return a value 0-255 (higher is better)
     auto getMove (Board& board) const -> Move override;
     protected:
-        mutable int m_move;
+        mutable int m_move = {0};
     }; 
 
 struct RandomPlayer: Player 
@@ -128,36 +128,6 @@ struct Centre: EvalPositionPlayer
     auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
     };
 
-struct Aggresive: EvalPositionPlayer
-    {
-    auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
-    };
-
-struct Passive: EvalPositionPlayer
-    {
-    auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
-    };
-
-struct Expensive: EvalPiecePlayer
-    {
-    auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
-    };
-
-struct Cheap: EvalPiecePlayer
-    {
-    auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
-    };
-
-struct Far: EvalMovesPlayer
-    {
-    auto evalMove (const Move& move) const -> u32 override;
-    };
-
-struct Near: EvalMovesPlayer
-    {
-    auto evalMove (const Move& move) const -> u32 override;
-    };
-
 struct BongCloud: EvalPiecePlayer
     {
     auto evalPiece (u8 piece, u8 column, u8 row) const -> u8 override;
@@ -177,12 +147,6 @@ std::unique_ptr<Player> makePacifist();
 std::unique_ptr<Player> makeCheckmate();
 std::unique_ptr<Player> makeClearPath();
 std::unique_ptr<Player> makeCentre();
-std::unique_ptr<Player> makeAggresive();
-std::unique_ptr<Player> makePassive();
-std::unique_ptr<Player> makeExpensive();
-std::unique_ptr<Player> makeCheap();
-std::unique_ptr<Player> makeFar();
-std::unique_ptr<Player> makeNear();
 std::unique_ptr<Player> makeBongCloud();
 
 // Defensive (move pieces out of danger)

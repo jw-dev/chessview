@@ -55,10 +55,6 @@ To run a game, specify which bots to play for both white and black sides:
 |`edge`|Opposite of `centre`; plays to control the a and h files.|
 |`aggressive`|Plays to push its pieces to the opposite rank. Pushes one piece and then keeps moving that piece back and forth. Quite boring.|
 |`passive`|Plays to prevent pushing its pieces at all; insanely boring (and terrible.)|
-|`expensive`|Prefers moving the highest value piece.|
-|`cheap`|Prefer moving the lowest value piece.|
-|`far`|Tries to move the furthest distance every move.|
-|`near`|Tries to move the shortest distance every move.|
 |`bongcloud`|Opens with bongcloud (move pawn, then King) and then plays randomly.|
 
 ## Features

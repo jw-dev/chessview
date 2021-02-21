@@ -1,5 +1,10 @@
 #include "Runner.h"
 
+RunnerStd::RunnerStd () 
+  : m_board () 
+    {  
+    }
+
 auto RunnerStd::getBoard () -> Board& 
     {
     return m_board;

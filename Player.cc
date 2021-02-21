@@ -277,62 +277,8 @@ auto Centre::evalPiece (u8, u8 column, u8) const -> u8
     static const std::vector <u32> bonus = { 0, 1, 2, 3, 3, 2, 1, 0 };
     return bonus [column];
     }
-
-auto Aggresive::evalPiece (u8, u8, u8 row) const -> u8 
-    {
-    static const std::vector <u32> bonus = { 0, 2, 4, 8, 16, 32, 64, 128 };
-    return bonus [row];
-    }
-
-auto Passive::evalPiece (u8, u8, u8 row) const -> u8 
-    {
-    static const std::vector <u32> bonus = { 128, 64, 32, 16, 8, 4, 2, 1 };
-    return bonus [row];
-    }
-
-auto Expensive::evalPiece (u8 piece, u8, u8) const -> u8 
-    {
-    static const std::map <u8, u8> bonus
-        = {
-            { PAWN, 1 },
-            { BISHOP, 2 },
-            { KNIGHT, 2 },
-            { ROOK, 3 },
-            { CASTLE, 3 },
-            { QUEEN, 4 },
-            { KING, 5 },
-          };
-    return bonus.at( piece & Board::TYPE_MASK );
-    }
-
-auto Cheap::evalPiece (u8 piece, u8, u8) const -> u8 
-    {
-    static const std::map <u8, u8> bonus
-        = {
-            { PAWN, 5 },
-            { BISHOP, 4 },
-            { KNIGHT, 4 },
-            { ROOK, 3 },
-            { CASTLE, 3 },
-            { QUEEN, 2 },
-            { KING, 1 },
-          };
-    return bonus.at( piece & Board::TYPE_MASK );
-    }
-
-auto Near::evalMove (const Move& move) const -> u32
-    {
-    u32 distance = std::max ( abs(move.fromCol - move.toCol), abs(move.fromRow - move.toRow) );
-    return UINT32_MAX - distance;
-    }
-
-auto Far::evalMove (const Move& move) const -> u32
-    {
-    u32 distance = std::max ( abs(move.fromCol - move.toCol), abs(move.fromRow - move.toRow) );
-    return distance;
-    }
-
-auto BongCloud::evalPiece (u8 piece, u8 column, u8 row) const -> u8
+    
+auto BongCloud::evalPiece (u8 piece, u8 column, u8) const -> u8
     {
     u8 type = piece & Board::TYPE_MASK;
     u8 ret = 0U;
@@ -407,36 +353,6 @@ std::unique_ptr<Player> makeClearPath()
 std::unique_ptr<Player> makeCentre() 
     {
     return std::make_unique<Centre>();
-    }
-
-std::unique_ptr<Player> makeAggresive()
-    {
-    return std::make_unique<Aggresive>();
-    }
-
-std::unique_ptr<Player> makePassive()
-    {
-    return std::make_unique<Passive>();
-    }
-
-std::unique_ptr<Player> makeExpensive()
-    {
-    return std::make_unique<Expensive>();
-    }
-
-std::unique_ptr<Player> makeCheap()
-    {
-    return std::make_unique<Cheap>();
-    }
-
-std::unique_ptr<Player> makeFar()
-    {
-    return std::make_unique<Far>();
-    }
-
-std::unique_ptr<Player> makeNear()
-    {
-    return std::make_unique<Near>();
     }
 
 std::unique_ptr<Player> makeBongCloud()

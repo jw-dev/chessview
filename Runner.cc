@@ -1,5 +1,13 @@
 #include "Runner.h"
 
+Runner::Runner()
+  : m_players (), 
+    m_state (STATE_NORMAL), 
+    m_whiteMove ( true ), 
+    m_winner ( 0U ) 
+    {
+    }
+
 auto Runner::addPlayer ( u8 color, std::unique_ptr<Player>&& player ) -> void
     {
     assert ( color == BLACK || color == WHITE );

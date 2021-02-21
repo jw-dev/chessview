@@ -13,7 +13,8 @@
 
 struct Runner 
     {
-    Runner () = default;
+    Runner ();
+    virtual ~Runner() = default;
 
     auto addPlayer ( u8 color, std::unique_ptr<Player>&& player ) -> void;
     auto getState () -> BoardState;
@@ -21,9 +22,9 @@ struct Runner
     auto run () -> void;
 protected: 
     std::map <u8, std::unique_ptr<Player>> m_players;
-    BoardState m_state = STATE_NORMAL;
-    bool m_whiteMove = true;
-    u8 m_winner = 0U;
+    BoardState m_state;
+    bool m_whiteMove;
+    u8 m_winner;
 
     auto createDefaultBoard () -> void;
     auto doMove ( Board& b, Move& m ) -> void;
@@ -47,7 +48,7 @@ private:
 
 struct RunnerStd final: public Runner 
     {
-    RunnerStd () = default;
+    RunnerStd ();
 private: 
     auto getBoard () -> Board& override;
     auto tick () -> bool override;

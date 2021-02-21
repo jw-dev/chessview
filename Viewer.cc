@@ -10,7 +10,8 @@ namespace
     }
 
 Viewer::Viewer (const std::string& name, int width, int height)
-  : m_keys (),
+  : onNewMove (nullptr),
+    m_keys (),
     m_quit (false),
     m_width (width),
     m_mouse ()

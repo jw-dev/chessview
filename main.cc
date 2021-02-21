@@ -25,12 +25,6 @@ static const std::map <std::string, PlayerCreator>
                 { "pacifist",       makePacifist },
                 { "edge",           makeClearPath },
                 { "centre",         makeCentre },
-                { "aggressive",     makeAggresive },
-                { "passive",        makePassive },
-                { "expensive",      makeExpensive },
-                { "cheap",          makeCheap },
-                { "far",            makeFar },
-                { "near",           makeNear },
                 { "bongcloud",      makeBongCloud },
               };
 
@@ -62,7 +56,7 @@ static std::size_t numPlayers ( const std::vector<std::string>& args )
     {
     std::size_t players = 0;
 
-    for ( int i = 1; i < args.size(); ++i )
+    for ( std::size_t i = 1; i < args.size(); ++i )
         {
         const std::string& arg = args.at ( i );
         if ( arg[0] == '-' ) continue;

@@ -63,7 +63,6 @@ auto RunnerUI::tick () -> bool
             const std::unique_ptr<Player>& p = m_players [ m_whiteMove ? WHITE: BLACK ];
             if (p)
                 {
-                std::cout << "doing move for player: " << m_whiteMove << std::endl;
                 Move move = p->getMove ( newBoard );
                 doMove ( newBoard, move );
                 m_states.push_back ( newBoard );
