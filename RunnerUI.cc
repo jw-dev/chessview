@@ -1,13 +1,10 @@
 #include "Runner.h"
-
-#define WINDOW_TITLE "chessview"
-#define WINDOW_WIDTH 480
-#define WINDOW_HEIGHT 480
+#include "Config.h"
 
 RunnerUI::RunnerUI () 
   : Runner (),
     m_states {},
-    m_viewer { "chessview", WINDOW_WIDTH, WINDOW_HEIGHT }
+    m_viewer { Config::WindowTitle, Config::WindowWidth, Config::WindowHeight }
     {
     m_states.emplace_back ();
     m_viewer.onNewMove = [this] ( Move& move )
@@ -82,7 +79,7 @@ auto RunnerUI::tick () -> bool
 
     // add delay if computer vs computer
     if ( !m_paused && m_players[WHITE] && m_players[BLACK] ) 
-        SDL_Delay ( 250 );
+        SDL_Delay ( Config::AfterMoveDelay );
 
     return false;
     } 
