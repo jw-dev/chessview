@@ -144,6 +144,7 @@ auto Viewer::drawTiles ( const Board& board ) -> void
     {
     const u8 tileSize = m_width / Board::GRID_LENGTH;
     const Move& last = board.lastMove;
+    const bool isMoveZero = !last.fromCol && !last.fromRow && !last.toCol && !last.toRow;
 
     for ( u8 x = 0; x < Board::GRID_LENGTH; ++x ) 
         for ( u8 y = 0; y < Board::GRID_LENGTH; ++y )
@@ -158,7 +159,7 @@ auto Viewer::drawTiles ( const Board& board ) -> void
                 setColor ( HOVER_COLOR );
                 }
             // if this tile participated in the last move, highlight it specially 
-            else if  ( ( last.fromCol == x && last.fromRow == y ) || ( last.toCol == x && last.toRow == y ) )
+            else if  ( !isMoveZero && ( ( last.fromCol == x && last.fromRow == y ) || ( last.toCol == x && last.toRow == y ) ) )
                 {
                 setColor ( LAST_MOVE_COLOR );
                 }
