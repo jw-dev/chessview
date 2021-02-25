@@ -9,6 +9,7 @@
 #include "Move.h"
 
 using u8 = uint_least8_t;
+using u16 = uint_least16_t;
 using u32 = uint_least32_t;
 
 // Enum to hold information about a piece in 4 bits.
@@ -23,7 +24,7 @@ enum PieceBits
     QUEEN = 4,
     KING = 5,
     ROOK = 6,
-    CASTLE = 7, // A rook that has not moved yet
+    CASTLE = 7,
     WHITE = 8, 
     };
 
@@ -50,8 +51,9 @@ struct Board
     // For when a tile has no piece in it
     const static u8 EMPTY = 0;
     // Bits 
-    const static u8 KING_MOVED_MASK = 0b00000001;
-    const static u8 STALE_MASK = 0b11111110;
+    const static u16 WHITE_KINGMOVE_MASK = 0b01;
+    const static u16 BLACK_KINGMOVE_MASK = 0b10;
+    const static u16 STALE_MASK = 0b111111100;
 
     Move lastMove = {0};
 
@@ -133,16 +135,19 @@ protected:
     // So, m_pieces is 8 u32s, one for each row on the board.
     std::vector <u32> m_pieces;
 
-    // Store bits specific to each player. 
-    // Bit 0 is set when the King has moved. 
-    // Bits 1-7 are for the number of stale moves for the player.
-    std::unordered_map <u8, u8> m_bits; 
+    // Board state bits.
+    // Bit 0 is used for when the white King has moved.
+    // Bit 1 is used for when the black King has moved.
+    // Bits 2-8 are used
+    // Bits 9-16 are reserved. 
+    u16 m_bits = 0U; 
 
     // Do a move without checking if it is legal, just do it.
     auto forceDoMove (const Move& move) -> void;
 
     // Checks whether the specified column and row is within the confines of the board.
-    auto inBounds (u8 column, u8 row) const -> bool;
+    auto inBounds (u8 column, u8 row) const -> bool; 
+
     // Checks whether the source tile and target tile of the move is within the confines of the board.
     auto inBounds (const Move& move) const -> bool;
 

@@ -2,8 +2,7 @@
 
 
 Board::Board () 
-  : m_pieces { },
-    m_bits { { WHITE, 0U }, { BLACK, 0U } }
+  : m_pieces { }
     {
     // Pack vector storage.
     m_pieces.resize (GRID_LENGTH);
@@ -11,8 +10,7 @@ Board::Board ()
     }
 
 Board::Board (const Board& other)
-  : m_pieces { },
-    m_bits { } 
+  : m_pieces { }
     {
     std::copy (other.m_pieces.begin(), other.m_pieces.end(), std::back_inserter (m_pieces));
     m_bits = other.m_bits;
@@ -21,10 +19,9 @@ Board::Board (const Board& other)
 
 auto Board::reset() -> void 
     {
+    m_bits = 0U;
     for (auto& row: m_pieces) 
         row = 0U;
-    for (auto& bits: m_bits)
-        bits.second = 0U;
     }
 
 auto Board::pieceAt (u8 column, u8 row) const -> u8
@@ -215,15 +212,14 @@ auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
                 {
                 // Castling
                 const int dir = getDir ( move.fromCol, move.toCol );
-
-                // King has moved 
                 const u8 color = piece & COLOR_MASK;
-                if ( m_bits[color] & KING_MOVED_MASK ) 
-                    return false;
-
-                // Check if piece in corner is a rook that is castleable 
                 const u8 castleColumn = dir == -1 ? 0 : 7;
                 const u8 castle = pieceAt ( castleColumn, move.fromRow );
+
+                // king has moved
+                if ( ( color == WHITE && (m_bits & WHITE_KINGMOVE_MASK) ) || ( color == BLACK && (m_bits & BLACK_KINGMOVE_MASK) ) )
+                    return false;
+                
                 if ( (castle & TYPE_MASK) != CASTLE )
                     return false;
 
@@ -339,8 +335,8 @@ auto Board::getBoardState (u8 player) -> BoardState
         // if zero moves and in check, that's checkmate - otherwise stalemate 
         return isCheck ( player ) ? STATE_CHECKMATE : STATE_STALEMATE;
         }
-    // 50 moves without capture or pawn move
-    else if ( (m_bits[WHITE] & STALE_MASK) >= 50 && (m_bits[BLACK] & STALE_MASK) >= 50 )
+    // 50 moves without capture or pawn move (we compare with 100 because stale moves is counted per half-turn)
+    else if ( ( m_bits & STALE_MASK ) >= 100U )
         {
         return STATE_FORCED_DRAW_FIFTY_MOVES;
         }
@@ -375,15 +371,12 @@ auto Board::forceDoMove(const Move & move) -> void
     // Check for stale moves. 
     if ((src & TYPE_MASK) != PAWN && pieceAt (move.toCol, move.toRow) == EMPTY) 
         {
-        const u8 bits = m_bits[ move.color ];
-        const u8 stale = ((bits & STALE_MASK) >> KING_MOVED_MASK) + 1;
-        const u8 kingMoved = bits & KING_MOVED_MASK;
-
-        m_bits [ move.color ] = (stale << KING_MOVED_MASK) | kingMoved;
+        const u8 stale = ((m_bits & STALE_MASK) >> 2) + 1;
+        m_bits = ( m_bits & 0b11 ) | ( stale << 2 );
         }
     else 
         {
-        m_bits [ move.color ] &= (~STALE_MASK);
+        m_bits &= (~STALE_MASK);
         }
 
     if ((src & TYPE_MASK) == CASTLE) // Moving rook for first time 
@@ -402,12 +395,8 @@ auto Board::forceDoMove(const Move & move) -> void
             removePiece ( rookSourceCol, row );
             setPiece ( ROOK | move.color, rookTargetCol, row );
             }
-
-        u8& bits = m_bits [ move.color ];
-        if ( !(bits & KING_MOVED_MASK) ) 
-            {
-            bits |= KING_MOVED_MASK;
-            }
+ 
+        m_bits |= ( move.color == WHITE? WHITE_KINGMOVE_MASK: BLACK_KINGMOVE_MASK );
         }
 
     // Do promotion
