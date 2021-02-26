@@ -342,24 +342,36 @@ auto Board::getBoardState (u8 player) -> BoardState
         }
     // check all piece types on the board (except king)
     // if we only have kings, or king v king + bishop or king v king + knight then it's a forced draw
-    std::vector<u8> types; 
-    for (u8 c = 0; c < GRID_LENGTH; ++c) 
-        for (u8 r = 0; r < GRID_LENGTH; ++r)
-            {
-            u8 type = pieceAt ( c, r ) & Board::TYPE_MASK;
-            if (type != KING) 
-                types.push_back ( type );
-            }
-    if ( types.size() == 1 ) 
-        return STATE_FORCED_DRAW_INSUFFICIENT_MATERIAL; 
-    else if ( types.size() == 2 )
+    u8 numPieces = 0U;
+    struct 
         {
-        // check piece types 
-        u8 type = types.at ( 0 );
-        if ( type == BISHOP || type == KNIGHT )
+        u8 type;
+        u8 color;
+        u8 tileColor;
+        } alivePiece[2];
+
+    for ( u8 i = 0; i < GRID_LENGTH*GRID_LENGTH && numPieces <= 1; ++i)
+        {
+        const u8 row = i / GRID_LENGTH;
+        const u8 column = i % GRID_LENGTH;
+        const u8 piece = pieceAt ( column, row );
+        if ( ( piece & TYPE_MASK ) != KING )
+            {
+            alivePiece [numPieces++] = { (u8) (piece & TYPE_MASK), (u8) (piece & COLOR_MASK), colorAt ( column, row ) };
+            }
+        }
+    // no pieces but kings, or one piece and it's a knight/bishop
+    if ( numPieces == 0 || ( numPieces == 1 && ( alivePiece[0].type == KNIGHT || alivePiece[0].type == BISHOP ) ) )
+        return STATE_FORCED_DRAW_INSUFFICIENT_MATERIAL;
+    // two pieces, and both bishops of same color
+    else if ( numPieces == 2 ) 
+        {
+        bool isBothBishop = alivePiece[0].type == BISHOP && alivePiece[1].type == BISHOP;
+        bool isOppositePlayer = alivePiece[0].color != alivePiece[1].color;
+        bool isSameTile = alivePiece[0].tileColor == alivePiece[1].tileColor;
+        if ( isBothBishop && isOppositePlayer && isSameTile )
             return STATE_FORCED_DRAW_INSUFFICIENT_MATERIAL;
         }
-   
     // else normal
     return STATE_NORMAL;
     }
