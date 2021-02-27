@@ -104,24 +104,22 @@ auto Board::isMoveLegal (const Move& move) -> bool
 
 auto Board::isEnPassant (const Move& move) const -> bool
     {
-    const u8 mycolor = whiteMove()? WHITE: BLACK;
     const u8 piece = pieceAt ( move.fromCol, move.fromRow );
-    const u8 opponent = mycolor == WHITE ? BLACK : WHITE;
+    const u8 attackedPiece = pieceAt ( lastMove.toCol, lastMove.fromCol );
 
-    // Moving piece must be a pawn 
-    if (piece != ( PAWN | mycolor ))
+    // Moving and attacked piece must be a pawn 
+    if ((piece & TYPE_MASK) != PAWN || (attackedPiece & TYPE_MASK) != PAWN)
         return false;
 
-    // Last pawn to move must be a pawn 
-    const u8 lastPiece = pieceAt ( lastMove.toCol, lastMove.toRow );
-    if ( lastPiece != ( PAWN | opponent ))
-        return false;   
+    // Must be different coloured pawns 
+    if ( (piece & COLOR_MASK) == (attackedPiece & COLOR_MASK) )
+        return false;
 
     // Must be trying to take on the same column as the last move
     if ( lastMove.toCol != move.toCol )
         return false;
 
-    switch ( mycolor )
+    switch ( piece & COLOR_MASK )
         {
         case BLACK:
             // Last move must be Pawn from 2nd rank to 4th rank (1-based)
@@ -145,8 +143,6 @@ auto Board::isEnPassant (const Move& move) const -> bool
 
 auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
     {
-    const u8 mycolor = whiteMove()? WHITE: BLACK;
-
     // Can't move nothing
     if (piece == EMPTY) 
         return false;
@@ -230,9 +226,9 @@ auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
                     return false;
 
                 // Cannot move from, through or into check (but into check will be covered elsewhere, so we only need to check from and through)
-                if ( isAttacked ( move.fromCol, move.fromRow, mycolor) )
+                if ( isAttacked ( move.fromCol, move.fromRow ) )
                     return false;
-                else if ( isAttacked ( move.fromCol + dir, move.toRow, mycolor ) )
+                else if ( isAttacked ( move.fromCol + dir, move.toRow ) )
                     return false;
 
                 // Finally, all tiles between the king and the rook must be EMPTY
@@ -315,12 +311,12 @@ auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
 
 auto Board::isMoveIntoCheck (const Move& move) -> bool
     {
-    const u8 mycolor = whiteMove()? WHITE: BLACK;
+    const u8 mycolor = whiteMove() ? WHITE: BLACK;
     // Use tryMove to just perform the move and see if we're in check.
     bool inCheckPostMove = tryMove (
         move, [this, &mycolor, &move] () 
             {
-            return isCheck (mycolor);
+            return isCheck ( mycolor );
             });
     return inCheckPostMove;
     }
@@ -334,13 +330,14 @@ auto Board::doMove (const Move& move) -> bool
     return moveLegal;
     }
 
-auto Board::getBoardState (u8 player) -> BoardState 
+auto Board::getBoardState () -> BoardState 
     {
+    const u8 mycolor = whiteMove()? WHITE: BLACK;
     // zero moves 
-    if ( hasZeroMoves ( player ) ) 
+    if ( hasZeroMoves () ) 
         {
         // if zero moves and in check, that's checkmate - otherwise stalemate 
-        return isCheck ( player ) ? STATE_CHECKMATE : STATE_STALEMATE;
+        return isCheck (mycolor) ? STATE_CHECKMATE : STATE_STALEMATE;
         }
     // 50 moves without capture or pawn move (we compare with 100 because stale moves is counted per half-turn)
     else if ( ( m_bits & STALE_MASK ) >= 100U )
@@ -439,22 +436,22 @@ auto Board::forceDoMove(const Move & move) -> void
     m_bits ^= WHITEMOVE_MASK;
     }
 
-auto Board::hasZeroMoves (u8 color) -> bool
+auto Board::hasZeroMoves () -> bool
     {
-    auto moves = getMoves (color, 1);
+    auto moves = getMoves (1);
     return moves.empty();
     }
 
-auto Board::hasOneMove (u8 color) -> bool
+auto Board::hasOneMove () -> bool
     {
-    auto moves = getMoves (color, 2);
+    auto moves = getMoves (2);
     return moves.size() == 1;
     }
 
-auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
+auto Board::getMoves (u8 count) -> std::vector<Move>
     {
+    const u8 mycolor = whiteMove()? WHITE: BLACK;
     std::vector <Move> moves; 
-
 
     // Loop over all squares and find our pieces.
     for (u8 row = 0; row < GRID_LENGTH; ++row) 
@@ -463,7 +460,7 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
             // Adds a move but only if it is legal.
             // Required because for loops below will try to add lots of out-of-bounds and weird, illegal moves.
             auto tryAddMove = 
-                [&column, &row, &moves, &color, this] 
+                [&column, &row, &moves, this] 
                     (u8 toCol, u8 toRow, u8 promote=0U) 
                         {
                         const Move move { column, toCol, row, toRow, promote };
@@ -472,7 +469,7 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                         };
 
             const u8 piece = pieceAt (column, row);
-            if ((piece & COLOR_MASK) == color) 
+            if ((piece & COLOR_MASK) == mycolor) 
                 {
                 switch (piece & TYPE_MASK)
                     {
@@ -565,7 +562,7 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
 
 auto Board::isCheck (u8 color) -> bool
     {
-    const u8 myKing = (KING | (color & COLOR_MASK));
+    const u8 myKing = KING | color;
     // Find king.
     for (u8 row = 0; row < GRID_LENGTH; ++row)
         for (u8 column = 0; column < GRID_LENGTH; ++column) 

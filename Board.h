@@ -85,13 +85,13 @@ struct Board
 
     // Returns the number of moves for the specified player (color) WHITE or BLACK.
     // Specify count as non-zero to restrict the result to [count] moves only. For example, count = 1 returns exactly one move (or zero if none legal).
-    auto getMoves (u8 color, u8 count = 0) -> std::vector<Move>;
+    auto getMoves (u8 count = 0) -> std::vector<Move>;
 
     // Returns whether the specified player (WHITE or BLACK) has exactly zero moves remaining. (For checkmate and stalemate situations)
-    auto hasZeroMoves (u8 color) -> bool;
+    auto hasZeroMoves () -> bool;
 
     // Returns whether the specified player has exactly one move remaining. (For stalemate situations).
-    auto hasOneMove (u8 color) -> bool;
+    auto hasOneMove () -> bool;
 
     // Returns whether the specified player is currently in check (King is attacked by a piece).
     auto isCheck (u8 color) -> bool;
@@ -107,7 +107,7 @@ struct Board
     auto isEnPassant (const Move& move) const -> bool; 
     
     // Returns the current board state, depending on whose turn it is.
-    auto getBoardState (u8 player) -> BoardState;
+    auto getBoardState () -> BoardState;
 
     // Returns true if the specified player has moved their king. (For castling rules.)
     auto kingMoved ( u8 player ) const -> bool;
