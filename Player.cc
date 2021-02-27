@@ -134,7 +134,7 @@ auto WhiteSquares::evalBoard (Board& board) const -> u32
         for (int r = 0; r < board.GRID_LENGTH; ++r) 
             {
             u8 piece = board.pieceAt (c, r); 
-            if (piece != Board::EMPTY && (piece & Board::COLOR_MASK) == color)
+            if (piece != EMPTY && (piece & Board::COLOR_MASK) == color)
                 {
                 if (board.colorAt(c, r) == WHITE)
                     countWhite++;
@@ -152,7 +152,7 @@ auto BlackSquares::evalBoard (Board& board) const -> u32
             {
             u8 piece = board.pieceAt (c, r); 
 
-            if (piece != Board::EMPTY && (piece & Board::COLOR_MASK) == color)
+            if (piece != EMPTY && (piece & Board::COLOR_MASK) == color)
                 {
                 if (board.colorAt(c, r) == BLACK)
                     countBlack++;

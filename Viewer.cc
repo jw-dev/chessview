@@ -187,7 +187,7 @@ auto Viewer::drawPieces ( const Board& board ) -> void
             const u8 piece = board.pieceAt ( x, y );
             SDL_Rect tile { x * tileSize, row * tileSize, tileSize, tileSize };
             
-            if ( piece != Board::EMPTY ) 
+            if ( piece != EMPTY ) 
                 {
                 SDL_Texture* texture = m_pieceTextures [ piece ];
                 // check for if we're grabbing this piece 

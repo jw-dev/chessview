@@ -23,7 +23,6 @@ struct Runner
 protected: 
     std::map <u8, std::unique_ptr<Player>> m_players;
     BoardState m_state;
-    bool m_whiteMove;
     u8 m_winner;
 
     auto createDefaultBoard () -> void;

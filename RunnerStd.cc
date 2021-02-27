@@ -15,7 +15,8 @@ auto RunnerStd::tick () -> bool
     if ( m_state != STATE_NORMAL)
         return true; 
         
-    const auto& p = m_players [ m_whiteMove? WHITE: BLACK];
+    const u8 player = m_board.whiteMove ()? WHITE: BLACK;
+    const auto& p = m_players [ player ];
     Move move = p->getMove ( m_board );
     doMove ( m_board, move );
     return false;

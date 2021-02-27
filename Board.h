@@ -16,7 +16,7 @@ using u32 = uint_least32_t;
 // For example, this lets us use ROOK | WHITE (a white rook), which would be 0b1110 (14).
 enum PieceBits
     {
-    NONE = 0,
+    EMPTY = 0,
     BLACK = 0,
     PAWN = 1,
     BISHOP = 2,
@@ -48,12 +48,11 @@ struct Board
     const static u8 PIECE_MASK = 0b1111;
     const static u8 TYPE_MASK = 0b0111;
     const static u8 COLOR_MASK = 0b1000;
-    // For when a tile has no piece in it
-    const static u8 EMPTY = 0;
     // Bits 
     const static u16 WHITE_KINGMOVE_MASK = 0b01;
     const static u16 BLACK_KINGMOVE_MASK = 0b10;
-    const static u16 STALE_MASK = 0b111111100;
+    const static u16 STALE_MASK = 0b0111111100;
+    const static u16 WHITEMOVE_MASK = 0b1000000000;
 
     Move lastMove = {0};
 
@@ -110,6 +109,12 @@ struct Board
     // Returns the current board state, depending on whose turn it is.
     auto getBoardState (u8 player) -> BoardState;
 
+    // Returns true if the specified player has moved their king. (For castling rules.)
+    auto kingMoved ( u8 player ) const -> bool;
+
+    // Returns true if it is white's move, otherwise false.
+    auto whiteMove () const -> bool;
+
     // Try a move and then revert the board state.
     // The function f() is a user-specified function to check the board state.
     template <class T>
@@ -138,9 +143,10 @@ protected:
     // Board state bits.
     // Bit 0 is used for when the white King has moved.
     // Bit 1 is used for when the black King has moved.
-    // Bits 2-8 are used
-    // Bits 9-16 are reserved. 
-    u16 m_bits = 0U; 
+    // Bits 2-8 are used for the "stale move" counter.
+    // Bit 9 is used for whether or not it is white's move (true is white move.)
+    // Bits 10-16 are reserved. 
+    u16 m_bits = WHITEMOVE_MASK;
 
     // Do a move without checking if it is legal, just do it.
     auto forceDoMove (const Move& move) -> void;

@@ -12,19 +12,18 @@ RunnerUI::RunnerUI ()
         if ( m_players.size() == 2 && m_players[WHITE] != nullptr && m_players[BLACK] != nullptr )
             return; // if 2 computers, ignore 
 
-        for ( u8 color: { WHITE, BLACK } )
-            if ( m_players[color] == nullptr ) 
-                move.color = color;
+        Board& b = getBoard ();
+        const u8 playerColor = m_players[WHITE] == nullptr? WHITE: BLACK;
+        bool whiteMove = b.whiteMove();
 
         // is it even our turn?
-        if ( ( move.color == WHITE && !m_whiteMove ) || ( move.color == BLACK && m_whiteMove ) ) 
+        if ( ( playerColor == WHITE && !whiteMove ) || ( playerColor == BLACK && whiteMove ) ) 
             return; // nope
 
         // check promotion 
-        Board& b = getBoard ();
         const u8 piece = b.pieceAt ( move.fromCol, move.fromRow ) & Board::TYPE_MASK;
 
-        if ( piece == PAWN && ((move.color == WHITE && move.toRow == 7) || (move.color == BLACK && move.toRow == 0)) )
+        if ( piece == PAWN && ((whiteMove && move.toRow == 7) || (!whiteMove && move.toRow == 0)) )
             move.promotion = QUEEN;
 
         if ( b.isMoveLegal ( move ) ) 
@@ -56,8 +55,9 @@ auto RunnerUI::tick () -> bool
             {
             Board& currentBoard = m_states.back ();
             Board newBoard ( currentBoard );
+            const u8 player = currentBoard.whiteMove()? WHITE: BLACK;
 
-            const std::unique_ptr<Player>& p = m_players [ m_whiteMove ? WHITE: BLACK ];
+            const std::unique_ptr<Player>& p = m_players [ player ];
             if (p)
                 {
                 Move move = p->getMove ( newBoard );
@@ -89,7 +89,6 @@ auto RunnerUI::undo () -> void
     if ( m_index ) 
         {
         m_index--;
-        m_whiteMove = !m_whiteMove;
         m_state = STATE_NORMAL;
         }
     }

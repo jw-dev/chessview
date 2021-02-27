@@ -19,7 +19,7 @@ Board::Board (const Board& other)
 
 auto Board::reset() -> void 
     {
-    m_bits = 0U;
+    m_bits = WHITEMOVE_MASK;
     for (auto& row: m_pieces) 
         row = 0U;
     }
@@ -71,6 +71,9 @@ auto Board::inBounds (const Move& move) const -> bool
 
 auto Board::isMoveLegal (const Move& move) -> bool
     {
+    // Whose turn is it?
+    const u8 mycolor = whiteMove()? WHITE: BLACK;
+
     // Move not in bounds, so is immediately illegal
     if ( !inBounds (move) )
         return false;
@@ -83,14 +86,14 @@ auto Board::isMoveLegal (const Move& move) -> bool
     u8 piece = pieceAt (move.fromCol, move.fromRow);    
     if (piece == EMPTY) // No piece at source, so nothing to move 
         return false;
-    else if ((piece & COLOR_MASK) != move.color) // Piece at source cannot be moved by the provided player
+    else if ((piece & COLOR_MASK) != mycolor) // Piece at source cannot be moved by the provided player
         return false;
     else if ((piece & TYPE_MASK) != PAWN && move.promotion) // Promoting a non pawn
         return false;
 
     // Check target
     u8 target = pieceAt (move.toCol, move.toRow); 
-    if (target && (target & COLOR_MASK) == move.color) // Capture is against same color piece
+    if (target && (target & COLOR_MASK) == mycolor) // Capture is against same color piece
         return false;
     // Capture is against the King (technically the king cannot be captured)
     else if ((target & TYPE_MASK) == KING) 
@@ -101,11 +104,12 @@ auto Board::isMoveLegal (const Move& move) -> bool
 
 auto Board::isEnPassant (const Move& move) const -> bool
     {
+    const u8 mycolor = whiteMove()? WHITE: BLACK;
     const u8 piece = pieceAt ( move.fromCol, move.fromRow );
-    const u8 opponent = move.color == WHITE ? BLACK : WHITE;
+    const u8 opponent = mycolor == WHITE ? BLACK : WHITE;
 
     // Moving piece must be a pawn 
-    if (piece != ( PAWN | move.color ))
+    if (piece != ( PAWN | mycolor ))
         return false;
 
     // Last pawn to move must be a pawn 
@@ -117,7 +121,7 @@ auto Board::isEnPassant (const Move& move) const -> bool
     if ( lastMove.toCol != move.toCol )
         return false;
 
-    switch ( move.color )
+    switch ( mycolor )
         {
         case BLACK:
             // Last move must be Pawn from 2nd rank to 4th rank (1-based)
@@ -141,6 +145,8 @@ auto Board::isEnPassant (const Move& move) const -> bool
 
 auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
     {
+    const u8 mycolor = whiteMove()? WHITE: BLACK;
+
     // Can't move nothing
     if (piece == EMPTY) 
         return false;
@@ -224,9 +230,9 @@ auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
                     return false;
 
                 // Cannot move from, through or into check (but into check will be covered elsewhere, so we only need to check from and through)
-                if ( isAttacked ( move.fromCol, move.fromRow, move.color) )
+                if ( isAttacked ( move.fromCol, move.fromRow, mycolor) )
                     return false;
-                else if ( isAttacked ( move.fromCol + dir, move.toRow, move.color ) )
+                else if ( isAttacked ( move.fromCol + dir, move.toRow, mycolor ) )
                     return false;
 
                 // Finally, all tiles between the king and the rook must be EMPTY
@@ -309,11 +315,12 @@ auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
 
 auto Board::isMoveIntoCheck (const Move& move) -> bool
     {
+    const u8 mycolor = whiteMove()? WHITE: BLACK;
     // Use tryMove to just perform the move and see if we're in check.
     bool inCheckPostMove = tryMove (
-        move, [this, &move] () 
+        move, [this, &mycolor, &move] () 
             {
-            return isCheck (move.color);
+            return isCheck (mycolor);
             });
     return inCheckPostMove;
     }
@@ -378,13 +385,16 @@ auto Board::getBoardState (u8 player) -> BoardState
 
 auto Board::forceDoMove(const Move & move) -> void 
     {
+    const u8 mycolor = whiteMove()? WHITE: BLACK;
     u8 src = pieceAt (move.fromCol, move.fromRow);
 
     // Check for stale moves. 
     if ((src & TYPE_MASK) != PAWN && pieceAt (move.toCol, move.toRow) == EMPTY) 
         {
         const u8 stale = ((m_bits & STALE_MASK) >> 2) + 1;
-        m_bits = ( m_bits & 0b11 ) | ( stale << 2 );
+
+        m_bits &= (~STALE_MASK);
+        m_bits |= ( stale << 2 );
         }
     else 
         {
@@ -392,7 +402,7 @@ auto Board::forceDoMove(const Move & move) -> void
         }
 
     if ((src & TYPE_MASK) == CASTLE) // Moving rook for first time 
-        src = ROOK | move.color;
+        src = ROOK | mycolor;
 
     // Castling 
     else if ((src & TYPE_MASK) == KING)
@@ -405,10 +415,10 @@ auto Board::forceDoMove(const Move & move) -> void
             const u8 rookTargetCol = kingSide? 5: 3;
 
             removePiece ( rookSourceCol, row );
-            setPiece ( ROOK | move.color, rookTargetCol, row );
+            setPiece ( ROOK | mycolor, rookTargetCol, row );
             }
  
-        m_bits |= ( move.color == WHITE? WHITE_KINGMOVE_MASK: BLACK_KINGMOVE_MASK );
+        m_bits |= ( mycolor == WHITE? WHITE_KINGMOVE_MASK: BLACK_KINGMOVE_MASK );
         }
 
     // Do promotion
@@ -424,6 +434,9 @@ auto Board::forceDoMove(const Move & move) -> void
         }
     removePiece (move.fromCol, move.fromRow);
     lastMove = move;
+
+    // Flip whose turn it is
+    m_bits ^= WHITEMOVE_MASK;
     }
 
 auto Board::hasZeroMoves (u8 color) -> bool
@@ -453,7 +466,7 @@ auto Board::getMoves (u8 color, u8 count) -> std::vector<Move>
                 [&column, &row, &moves, &color, this] 
                     (u8 toCol, u8 toRow, u8 promote=0U) 
                         {
-                        const Move move { column, toCol, row, toRow, color, promote };
+                        const Move move { column, toCol, row, toRow, promote };
                         if ( isMoveLegal (move) )
                             moves.push_back (move);
                         };
@@ -567,6 +580,17 @@ auto Board::isCheck (u8 color) -> bool
                 }
             }
     return false;
+    }
+
+auto Board::kingMoved ( u8 player ) const -> bool
+    {
+    auto mask = ( player == WHITE ) ? WHITE_KINGMOVE_MASK : BLACK_KINGMOVE_MASK ;
+    return m_bits & mask;
+    }
+
+auto Board::whiteMove () const -> bool
+    {
+    return m_bits & WHITEMOVE_MASK;
     }
 
 auto Board::isAttacked (u8 column, u8 row) const -> bool
