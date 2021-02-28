@@ -48,7 +48,7 @@ auto Runner::doMove ( Board& b, Move& m ) -> void
     m_state = b.getBoardState ();
     }
 
-auto Runner::run () -> void 
+auto Runner::run () -> std::string 
     {
     Board& board = getBoard ();
     board.reset ();
@@ -57,6 +57,27 @@ auto Runner::run () -> void
     for (;;)
         {
         if ( tick() )
-            return;
+            break;
         }
+    // after we're done, return a FEN of the final board state.
+    Board& final = getBoard ();
+    BoardState state = final.getBoardState ();
+    std::ostringstream oss;
+    switch ( state ) 
+        {
+        case STATE_CHECKMATE: 
+            {
+            const u8 winner = final.whiteMove()? BLACK: WHITE;
+            oss << "Checkmate ("
+                << ( winner == WHITE? "White": "Black" )
+                << " wins)";
+            break;
+            }
+        case STATE_STALEMATE: oss << "Stalemate"; break;
+        case STATE_FORCED_DRAW_FIFTY_MOVES: oss << "Draw by 50 move rule"; break;
+        case STATE_FORCED_DRAW_INSUFFICIENT_MATERIAL: oss << "Draw by insufficient material"; break;
+        }
+    oss << "\n"
+        << FEN::toFEN ( &final );
+    return oss.str ();
     }

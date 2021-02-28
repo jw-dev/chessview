@@ -9,6 +9,7 @@
 #include "Board.h"
 #include "Viewer.h"
 #include "Player.h"
+#include "FEN.h"
 
 
 struct Runner 
@@ -19,7 +20,7 @@ struct Runner
     auto addPlayer ( u8 color, std::unique_ptr<Player>&& player ) -> void;
     auto getState () -> BoardState;
     auto getWinner () -> u8;
-    auto run () -> void;
+    auto run () -> std::string;
 protected: 
     std::map <u8, std::unique_ptr<Player>> m_players;
     BoardState m_state;

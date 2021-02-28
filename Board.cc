@@ -20,6 +20,7 @@ Board::Board (const Board& other)
 auto Board::reset() -> void 
     {
     m_bits = WHITEMOVE_MASK;
+    m_halfMoves = 0U;
     for (auto& row: m_pieces) 
         row = 0U;
     }
@@ -340,7 +341,7 @@ auto Board::getBoardState () -> BoardState
         return isCheck (mycolor) ? STATE_CHECKMATE : STATE_STALEMATE;
         }
     // 50 moves without capture or pawn move (we compare with 100 because stale moves is counted per half-turn)
-    else if ( ( m_bits & STALE_MASK ) >= 100U )
+    else if ( staleHalfMoveClock() >= 100U )
         {
         return STATE_FORCED_DRAW_FIFTY_MOVES;
         }
@@ -434,6 +435,7 @@ auto Board::forceDoMove(const Move & move) -> void
 
     // Flip whose turn it is
     m_bits ^= WHITEMOVE_MASK;
+    m_halfMoves ++;
     }
 
 auto Board::hasZeroMoves () -> bool
@@ -588,6 +590,16 @@ auto Board::kingMoved ( u8 player ) const -> bool
 auto Board::whiteMove () const -> bool
     {
     return m_bits & WHITEMOVE_MASK;
+    }
+
+auto Board::fullMoveClock () const -> u16
+    {
+    return m_halfMoves / 2;
+    }
+
+auto Board::staleHalfMoveClock () const -> u16
+    {
+    return (m_bits & STALE_MASK) >> 2;
     }
 
 auto Board::isAttacked (u8 column, u8 row) const -> bool

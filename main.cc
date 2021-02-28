@@ -107,6 +107,7 @@ int main (int argc, char ** argv)
 
     if ( runner )
         {
-        runner->run ();
+        std::string result = runner->run ();
+        std::cout << result << std::endl;
         }
     }

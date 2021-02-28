@@ -115,6 +115,12 @@ struct Board
     // Returns true if it is white's move, otherwise false.
     auto whiteMove () const -> bool;
 
+    // Returns the number of full moves in total. 
+    auto fullMoveClock () const -> u16;
+
+    // Returns the number of half-moves since a capture or pawn advance.
+    auto staleHalfMoveClock () const -> u16;
+
     // Try a move and then revert the board state.
     // The function f() is a user-specified function to check the board state.
     template <class T>
@@ -122,13 +128,15 @@ struct Board
         {
         u32 src = m_pieces [move.fromRow];
         u32 dest = m_pieces [move.toRow];
-        auto bits = m_bits;
+        u16 bits = m_bits;
+        u16 halfMoves = m_halfMoves;
         Move _lastMove = lastMove;
         forceDoMove (move);
         auto result = func();
         m_pieces [move.fromRow] = src;
         m_pieces [move.toRow] = dest;
         m_bits = bits;
+        m_halfMoves = halfMoves;
         lastMove = _lastMove;
         return result;
         }
@@ -147,6 +155,10 @@ protected:
     // Bit 9 is used for whether or not it is white's move (true is white move.)
     // Bits 10-16 are reserved. 
     u16 m_bits = WHITEMOVE_MASK;
+
+    // Half-move counter. 
+    // Required for FEN export.
+    u16 m_halfMoves = 0U;
 
     // Do a move without checking if it is legal, just do it.
     auto forceDoMove (const Move& move) -> void;
