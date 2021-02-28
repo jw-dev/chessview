@@ -7,55 +7,12 @@
 #include <iostream>
 #include <unordered_map>
 #include "Move.h"
-
-using u8 = uint_least8_t;
-using u16 = uint_least16_t;
-using u32 = uint_least32_t;
-
-// Enum to hold information about a piece in 4 bits.
-// For example, this lets us use ROOK | WHITE (a white rook), which would be 0b1110 (14).
-enum PieceBits
-    {
-    EMPTY = 0,
-    BLACK = 0,
-    PAWN = 1,
-    BISHOP = 2,
-    KNIGHT = 3,
-    QUEEN = 4,
-    KING = 5,
-    ROOK = 6,
-    CASTLE = 7,
-    WHITE = 8, 
-    };
-
-// Board state. 
-enum BoardState 
-    {
-    STATE_NORMAL,
-    STATE_CHECKMATE,
-    STATE_STALEMATE,
-    STATE_FORCED_DRAW_INSUFFICIENT_MATERIAL,
-    STATE_FORCED_DRAW_FIFTY_MOVES,
-    };
+#include "Types.h"
 
 // Holds board state. 
 // Board state is held in m_pieces. 
 struct Board 
     {
-    // Length of the grid. Grid lengths of different sizes (up to 16!) should work, but untested.
-    const static u8 GRID_LENGTH = 8;
-    // Masks
-    const static u8 PIECE_MASK = 0b1111;
-    const static u8 TYPE_MASK = 0b0111;
-    const static u8 COLOR_MASK = 0b1000;
-    // Bits 
-    const static u16 WHITE_KINGMOVE_MASK = 0b01;
-    const static u16 BLACK_KINGMOVE_MASK = 0b10;
-    const static u16 STALE_MASK = 0b0111111100;
-    const static u16 WHITEMOVE_MASK = 0b1000000000;
-
-    Move lastMove = {0};
-
     Board ();
     Board (const Board& other);
     auto operator=(const Board& other) =delete;
@@ -107,7 +64,7 @@ struct Board
     auto isEnPassant (const Move& move) const -> bool; 
     
     // Returns the current board state, depending on whose turn it is.
-    auto getBoardState () -> BoardState;
+    auto getBoardState (uint16_t staleHalfMoveClock) -> BoardState;
 
     // Returns true if the specified player has moved their king. (For castling rules.)
     auto kingMoved ( u8 player ) const -> bool;
@@ -115,29 +72,28 @@ struct Board
     // Returns true if it is white's move, otherwise false.
     auto whiteMove () const -> bool;
 
-    // Returns the number of full moves in total. 
-    auto fullMoveClock () const -> u16;
+    // Returns the column where an en passant is possible. Returns 255 if invalid.
+    auto enPassantColumn () const -> u8;
 
-    // Returns the number of half-moves since a capture or pawn advance.
-    auto staleHalfMoveClock () const -> u16;
+    // Returns castling possibility. 
+    auto canCastle ( u8 color, bool queenSide ) -> bool;
+
+    // Returns whether the last move was "stale", i.e. no pawn move and no capture
+    auto isStale () -> bool;
 
     // Try a move and then revert the board state.
     // The function f() is a user-specified function to check the board state.
     template <class T>
     auto tryMove (const Move& move, const T &func) -> decltype (func()) 
         {
-        u32 src = m_pieces [move.fromRow];
-        u32 dest = m_pieces [move.toRow];
-        u16 bits = m_bits;
-        u16 halfMoves = m_halfMoves;
-        Move _lastMove = lastMove;
+        const u32 src = m_pieces [move.fromRow];
+        const u32 dest = m_pieces [move.toRow];
+        const u8 bits = m_bits;
         forceDoMove (move);
         auto result = func();
         m_pieces [move.fromRow] = src;
         m_pieces [move.toRow] = dest;
         m_bits = bits;
-        m_halfMoves = halfMoves;
-        lastMove = _lastMove;
         return result;
         }
 
@@ -146,19 +102,14 @@ protected:
     // Each piece is stored in a u8, but actually only takes up 4 bits. 
     // Since a chess grid is 8x8, this means we can encode each row as 4 bits x 8 bits = 32 bits - a single u32.
     // So, m_pieces is 8 u32s, one for each row on the board.
-    std::vector <u32> m_pieces;
+    std::array<u32, GRID_LENGTH> m_pieces;
 
     // Board state bits.
-    // Bit 0 is used for when the white King has moved.
-    // Bit 1 is used for when the black King has moved.
-    // Bits 2-8 are used for the "stale move" counter.
-    // Bit 9 is used for whether or not it is white's move (true is white move.)
-    // Bits 10-16 are reserved. 
-    u16 m_bits = WHITEMOVE_MASK;
-
-    // Half-move counter. 
-    // Required for FEN export.
-    u16 m_halfMoves = 0U;
+    // Bit 0 is used for when it is black's move. (True = black's move)
+    // Bit 1 is used when a pawn has made a double move. This is for en passant captures.
+    // Bits 2-5 are used for the column of the double pawn move. This is for en passant captures.
+    // Bit 6 is used to denote that the last move was "stale".
+    u8 m_bits = 0U;
 
     // Do a move without checking if it is legal, just do it.
     auto forceDoMove (const Move& move) -> void;

@@ -2,43 +2,33 @@
 
 namespace FEN 
     {
-    static auto canCastle ( Board* board, bool isWhite, bool isQueenside ) -> bool 
-        {
-        u8 color = isWhite ? WHITE : BLACK;
-        u8 row = isWhite ? 0 : Board::GRID_LENGTH - 1;
-        u8 column = isQueenside ? 0 : Board::GRID_LENGTH - 1;
-        return !board->kingMoved ( color ) && ( board->pieceAt ( column, row ) & Board::TYPE_MASK ) == CASTLE;
-        }
-
     static auto getCastleString ( Board* board ) -> std::string
         {
         std::string str = "";
-        if ( canCastle ( board, true, false  ) ) str.push_back ('K');
-        if ( canCastle ( board, true, true   ) ) str.push_back ('Q');
-        if ( canCastle ( board, false, false ) ) str.push_back ('k');
-        if ( canCastle ( board, false, true  ) ) str.push_back ('q');
+        if ( board->canCastle ( WHITE, false ) ) str.push_back ('K');
+        if ( board->canCastle ( WHITE, true  ) ) str.push_back ('Q');
+        if ( board->canCastle ( BLACK, false ) ) str.push_back ('k');
+        if ( board->canCastle ( BLACK, true  ) ) str.push_back ('q');
         return str == "" ? "-": str;
         }
 
     static auto getEnPassantString ( Board* board ) -> std::string 
         {
-        const u8 lastPiece = board->pieceAt ( board->lastMove.toCol, board->lastMove.toRow );
-        const int diff = board->lastMove.fromRow - board->lastMove.toRow;
-        if ( (lastPiece & Board::TYPE_MASK) == PAWN && ( diff == -2 || diff == 2 ) )
-            {
-            // at this point an en passant is "possible" (ignoring the fact there may not be a piece available to capture)
-            std::string s;
-            s.push_back ( 'a' + board->lastMove.fromCol );
-            s.push_back ( diff == 2 ? '6': '3' );
-            return s;
-            }
-        return "-";
+        const u8 column = board->enPassantColumn ();
+        if ( column == 255 )
+            return "-";
+
+        // at this point an en passant is "possible" (ignoring the fact there may not be a piece available to capture)
+        std::string s;
+        s.push_back ( 'a' + column );
+        s.push_back ( board->whiteMove()? '6': '3');
+        return s;
         }
 
     static auto toChar ( u8 piece ) -> char 
         {
-        const char lower = ( piece & Board::COLOR_MASK ) == BLACK ? 32 : 0;
-        switch ( piece & Board::TYPE_MASK ) 
+        const char lower = ( piece & COLOR_MASK ) == BLACK ? 32 : 0;
+        switch ( piece & TYPE_MASK ) 
             {
             case PAWN: return 'P' | lower;
             case BISHOP: return 'B' | lower;
@@ -51,7 +41,7 @@ namespace FEN
             }
         }
         
-    auto toFEN ( Board* board ) -> std::string
+    auto toFEN ( Board* board, u16 halfMoveStaleClock, u16 fullMoveclock ) -> std::string
         {
         std::ostringstream oss;
         int empty = 0;
@@ -64,9 +54,9 @@ namespace FEN
                 }
             };
 
-        for ( u8 row = Board::GRID_LENGTH - 1 ; row < UINT8_MAX; --row) 
+        for ( u8 row = GRID_LENGTH - 1 ; row < UINT8_MAX; --row) 
             {
-            for ( u8 col = 0; col < Board::GRID_LENGTH ; ++col )
+            for ( u8 col = 0; col < GRID_LENGTH ; ++col )
                 {
                 const u8 piece = board->pieceAt ( col, row );
                 if ( piece == EMPTY )
@@ -85,9 +75,9 @@ namespace FEN
             << ' '
             << getEnPassantString ( board )
             << ' '
-            << board->staleHalfMoveClock ()
+            << halfMoveStaleClock
             << ' '
-            << board->fullMoveClock ();
+            << fullMoveclock;
         return oss.str ();
         }
     }

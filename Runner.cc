@@ -45,7 +45,11 @@ auto Runner::doMove ( Board& b, Move& m ) -> void
     {
     if ( !b.doMove ( m ) )
         throw std::runtime_error ("player attempted an illegal move");
-    m_state = b.getBoardState ();
+    
+    m_lastMove = m;
+    m_fullMoves++;
+    m_staleMoveHalfClock = (b.isStale())? m_staleMoveHalfClock + 1: 0;
+    m_state = b.getBoardState (m_staleMoveHalfClock);
     }
 
 auto Runner::run () -> std::string 
@@ -61,7 +65,7 @@ auto Runner::run () -> std::string
         }
     // after we're done, return a FEN of the final board state.
     Board& final = getBoard ();
-    BoardState state = final.getBoardState ();
+    BoardState state = final.getBoardState (m_staleMoveHalfClock);
     std::ostringstream oss;
     switch ( state ) 
         {
@@ -78,6 +82,6 @@ auto Runner::run () -> std::string
         case STATE_FORCED_DRAW_INSUFFICIENT_MATERIAL: oss << "Draw by insufficient material"; break;
         }
     oss << "\n"
-        << FEN::toFEN ( &final );
+        << FEN::toFEN ( &final, m_staleMoveHalfClock, m_fullMoves );
     return oss.str ();
     }

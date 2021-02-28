@@ -1,28 +1,23 @@
 #include "Board.h"
 
 
+
 Board::Board () 
   : m_pieces { }
     {
-    // Pack vector storage.
-    m_pieces.resize (GRID_LENGTH);
-    m_pieces.shrink_to_fit ();
     }
 
 Board::Board (const Board& other)
   : m_pieces { }
     {
-    std::copy (other.m_pieces.begin(), other.m_pieces.end(), std::back_inserter (m_pieces));
+    m_pieces = other.m_pieces;
     m_bits = other.m_bits;
-    lastMove = other.lastMove;
     }
 
 auto Board::reset() -> void 
     {
-    m_bits = WHITEMOVE_MASK;
-    m_halfMoves = 0U;
-    for (auto& row: m_pieces) 
-        row = 0U;
+    m_pieces.fill(0);
+    m_bits = 0;
     }
 
 auto Board::pieceAt (u8 column, u8 row) const -> u8
@@ -105,41 +100,26 @@ auto Board::isMoveLegal (const Move& move) -> bool
 
 auto Board::isEnPassant (const Move& move) const -> bool
     {
-    const u8 piece = pieceAt ( move.fromCol, move.fromRow );
-    const u8 attackedPiece = pieceAt ( lastMove.toCol, lastMove.fromCol );
-
-    // Moving and attacked piece must be a pawn 
-    if ((piece & TYPE_MASK) != PAWN || (attackedPiece & TYPE_MASK) != PAWN)
+    if ( !(m_bits & DOUBLE_MASK) )
         return false;
 
-    // Must be different coloured pawns 
-    if ( (piece & COLOR_MASK) == (attackedPiece & COLOR_MASK) )
+    const u8 column = m_bits & PAWN_MASK;
+    const u8 piece = pieceAt ( move.fromCol, move.fromRow );
+
+    // Moving piece must be a pawn 
+    if ((piece & TYPE_MASK) != PAWN )
         return false;
 
     // Must be trying to take on the same column as the last move
-    if ( lastMove.toCol != move.toCol )
+    if ( move.toCol != column )
         return false;
 
     switch ( piece & COLOR_MASK )
         {
-        case BLACK:
-            // Last move must be Pawn from 2nd rank to 4th rank (1-based)
-            if (lastMove.fromRow != 1 || lastMove.toRow != 3)
-                return false;
-            // And this move must be Pawn from the 4th rank to the 3rd rank (1-based)
-            if (move.fromRow != 3 || move.toRow != 2)
-                return false;
-            break;
-        case WHITE:
-            // Same as above, from white perspective
-            if (lastMove.fromRow != 6 || lastMove.toRow != 4)
-                return false;
-            // And this move must be Pawn from the 4th rank to the 3rd rank (1-based)
-            if (move.fromRow != 4 || move.toRow != 5)
-                return false;
-            break;
+        case BLACK: return move.fromRow == 3 && move.toRow == 2;
+        case WHITE: return move.fromRow == 4 && move.toRow == 5;
         }
-    return true;
+    return false; // to stop warnings, but this should never be hit
     }
 
 auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
@@ -215,14 +195,9 @@ auto Board::isMoveLegalForPiece (u8 piece, const Move& move) -> bool
                 {
                 // Castling
                 const int dir = getDir ( move.fromCol, move.toCol );
-                const u8 color = piece & COLOR_MASK;
                 const u8 castleColumn = dir == -1 ? 0 : 7;
                 const u8 castle = pieceAt ( castleColumn, move.fromRow );
 
-                // king has moved
-                if ( ( color == WHITE && (m_bits & WHITE_KINGMOVE_MASK) ) || ( color == BLACK && (m_bits & BLACK_KINGMOVE_MASK) ) )
-                    return false;
-                
                 if ( (castle & TYPE_MASK) != CASTLE )
                     return false;
 
@@ -331,7 +306,7 @@ auto Board::doMove (const Move& move) -> bool
     return moveLegal;
     }
 
-auto Board::getBoardState () -> BoardState 
+auto Board::getBoardState (uint16_t staleHalfMoveClock) -> BoardState 
     {
     const u8 mycolor = whiteMove()? WHITE: BLACK;
     // zero moves 
@@ -341,7 +316,7 @@ auto Board::getBoardState () -> BoardState
         return isCheck (mycolor) ? STATE_CHECKMATE : STATE_STALEMATE;
         }
     // 50 moves without capture or pawn move (we compare with 100 because stale moves is counted per half-turn)
-    else if ( staleHalfMoveClock() >= 100U )
+    else if ( staleHalfMoveClock >= 100U )
         {
         return STATE_FORCED_DRAW_FIFTY_MOVES;
         }
@@ -386,25 +361,12 @@ auto Board::forceDoMove(const Move & move) -> void
     const u8 mycolor = whiteMove()? WHITE: BLACK;
     u8 src = pieceAt (move.fromCol, move.fromRow);
 
-    // Check for stale moves. 
-    if ((src & TYPE_MASK) != PAWN && pieceAt (move.toCol, move.toRow) == EMPTY) 
-        {
-        const u8 stale = ((m_bits & STALE_MASK) >> 2) + 1;
-
-        m_bits &= (~STALE_MASK);
-        m_bits |= ( stale << 2 );
-        }
-    else 
-        {
-        m_bits &= (~STALE_MASK);
-        }
-
     if ((src & TYPE_MASK) == CASTLE) // Moving rook for first time 
         src = ROOK | mycolor;
 
-    // Castling 
     else if ((src & TYPE_MASK) == KING)
         {
+        // castling
         if ( move.fromCol == 4 && (move.toCol == 6 || move.toCol == 2) )
             {
             const bool kingSide = move.toCol == 6;
@@ -415,27 +377,50 @@ auto Board::forceDoMove(const Move & move) -> void
             removePiece ( rookSourceCol, row );
             setPiece ( ROOK | mycolor, rookTargetCol, row );
             }
- 
-        m_bits |= ( mycolor == WHITE? WHITE_KINGMOVE_MASK: BLACK_KINGMOVE_MASK );
+        else // king moving, but not a castle
+            {
+            const u8 row = mycolor == WHITE? 0: 7;
+            for (u8 col: {0, 7})
+                if ( pieceAt (col, row) == ( CASTLE | mycolor ) )
+                    setPiece ( ROOK | mycolor, col, row );
+            }
         }
-
     // Do promotion
-    if ((src & TYPE_MASK) == PAWN && move.promotion) 
+    else if ((src & TYPE_MASK) == PAWN) 
         {
-        const u8 newType = move.promotion & TYPE_MASK;
-        const u8 color = src & COLOR_MASK;
-        setPiece (newType | color, move.toCol, move.toRow);
+        // double pawn move 
+        if ( (move.fromRow == 1 && move.toRow == 3) || (move.fromRow == 6 && move.toRow == 4 ) )
+            {
+            m_bits |= DOUBLE_MASK;
+            m_bits &= (~PAWN_MASK);
+            m_bits |= (move.fromCol << 2);
+            }
+        // promotion
+        else if ( move.promotion )
+            {
+            src = (move.promotion & TYPE_MASK) | (src & COLOR_MASK);
+            }
         }
     else 
         {
-        setPiece (src, move.toCol, move.toRow);
+        m_bits &= (~(PAWN_MASK | DOUBLE_MASK));
         }
-    removePiece (move.fromCol, move.fromRow);
-    lastMove = move;
 
+    if ((src & TYPE_MASK) == PAWN || pieceAt ( move.toCol, move.toRow ) != EMPTY)
+        {
+        // Pawn move or capture - clear stale mask 
+        m_bits &= (~STALE_MASK);
+        }
+    else 
+        {
+        m_bits |= STALE_MASK;
+        }
+
+    setPiece (src, move.toCol, move.toRow);
+    removePiece (move.fromCol, move.fromRow);
+    
     // Flip whose turn it is
-    m_bits ^= WHITEMOVE_MASK;
-    m_halfMoves ++;
+    m_bits ^= BLACKMOVE_MASK;
     }
 
 auto Board::hasZeroMoves () -> bool
@@ -581,25 +566,28 @@ auto Board::isCheck (u8 color) -> bool
     return false;
     }
 
-auto Board::kingMoved ( u8 player ) const -> bool
-    {
-    auto mask = ( player == WHITE ) ? WHITE_KINGMOVE_MASK : BLACK_KINGMOVE_MASK ;
-    return m_bits & mask;
-    }
-
 auto Board::whiteMove () const -> bool
     {
-    return m_bits & WHITEMOVE_MASK;
+    return !(m_bits & BLACKMOVE_MASK);
     }
 
-auto Board::fullMoveClock () const -> u16
+auto Board::enPassantColumn () const -> u8
     {
-    return m_halfMoves / 2;
+    return (m_bits & DOUBLE_MASK)? (m_bits & PAWN_MASK) >> 2: UINT8_MAX;
     }
 
-auto Board::staleHalfMoveClock () const -> u16
+auto Board::canCastle ( u8 color, bool queenSide ) -> bool
     {
-    return (m_bits & STALE_MASK) >> 2;
+    if      ( color == WHITE && !queenSide ) return pieceAt ( 7, 0 ) == ( CASTLE | color );
+    else if ( color == WHITE &&  queenSide ) return pieceAt ( 0, 0 ) == ( CASTLE | color );
+    else if ( color == BLACK && !queenSide ) return pieceAt ( 7, 7 ) == ( CASTLE | color );
+    else if ( color == BLACK &&  queenSide ) return pieceAt ( 0, 7 ) == ( CASTLE | color );
+    else return false;
+    }
+
+auto Board::isStale () -> bool
+    {
+    return m_bits & STALE_MASK;
     }
 
 auto Board::isAttacked (u8 column, u8 row) const -> bool

@@ -140,16 +140,15 @@ auto Viewer::updateMouse () -> void
         }
     }
 
-auto Viewer::drawTiles ( const Board& board ) -> void
+auto Viewer::drawTiles ( const Board& board, const Move& last ) -> void
     {
-    const u8 tileSize = m_width / Board::GRID_LENGTH;
-    const Move& last = board.lastMove;
+    const u8 tileSize = m_width / GRID_LENGTH;
     const bool isMoveZero = !last.fromCol && !last.fromRow && !last.toCol && !last.toRow;
 
-    for ( u8 x = 0; x < Board::GRID_LENGTH; ++x ) 
-        for ( u8 y = 0; y < Board::GRID_LENGTH; ++y )
+    for ( u8 x = 0; x < GRID_LENGTH; ++x ) 
+        for ( u8 y = 0; y < GRID_LENGTH; ++y )
             {
-            const u8 row = Board::GRID_LENGTH - 1 - y;
+            const u8 row = GRID_LENGTH - 1 - y;
             const u8 piece = board.pieceAt ( x, y );
             const SDL_Rect tile { x * tileSize, row * tileSize, tileSize, tileSize };
 
@@ -159,12 +158,12 @@ auto Viewer::drawTiles ( const Board& board ) -> void
                 setColor ( HOVER_COLOR );
                 }
             // if this tile participated in the last move, highlight it specially 
-            else if  ( !isMoveZero && ( ( last.fromCol == x && last.fromRow == y ) || ( last.toCol == x && last.toRow == y ) ) )
+            else if ( !isMoveZero && ( ( last.fromCol == x && last.fromRow == y ) || ( last.toCol == x && last.toRow == y ) ) )
                 {
                 setColor ( LAST_MOVE_COLOR );
                 }
             // highlight tile in red, if it is a king in check
-            else if ( ( piece & Board::TYPE_MASK ) == KING && board.isAttacked ( x, y ) ) 
+            else if ( ( piece & TYPE_MASK ) == KING && board.isAttacked ( x, y ) ) 
                 {
                 setColor ( ATTACKED_COLOR );
                 }
@@ -179,11 +178,11 @@ auto Viewer::drawTiles ( const Board& board ) -> void
     
 auto Viewer::drawPieces ( const Board& board ) -> void
     {
-    const u8 tileSize = m_width / Board::GRID_LENGTH;
-    for ( u8 x = 0; x < Board::GRID_LENGTH; ++x ) 
-        for ( u8 y = 0; y < Board::GRID_LENGTH; ++y )
+    const u8 tileSize = m_width / GRID_LENGTH;
+    for ( u8 x = 0; x < GRID_LENGTH; ++x ) 
+        for ( u8 y = 0; y < GRID_LENGTH; ++y )
             {
-            const u8 row = Board::GRID_LENGTH - 1 - y;
+            const u8 row = GRID_LENGTH - 1 - y;
             const u8 piece = board.pieceAt ( x, y );
             SDL_Rect tile { x * tileSize, row * tileSize, tileSize, tileSize };
             
@@ -194,7 +193,7 @@ auto Viewer::drawPieces ( const Board& board ) -> void
                 if ( m_mouse.isGrabbed ) 
                     {
                     const u8 gridGrabX = m_mouse.grabx / tileSize;
-                    const u8 gridGrabY = Board::GRID_LENGTH - 1 - (m_mouse.graby / tileSize);
+                    const u8 gridGrabY = GRID_LENGTH - 1 - (m_mouse.graby / tileSize);
                     if ( x == gridGrabX && y == gridGrabY )
                         {
                         // move draw position for texture 
@@ -212,21 +211,21 @@ auto Viewer::doMovement () -> void
     if ( !onNewMove )
         return;
 
-    const u8 tileSize = m_width / Board::GRID_LENGTH;
+    const u8 tileSize = m_width / GRID_LENGTH;
     const u8 fromCol = m_mouse.grabx / tileSize;
     const u8 toCol = m_mouse.x / tileSize;
-    const u8 fromRow = Board::GRID_LENGTH - 1 - (m_mouse.graby / tileSize);
-    const u8 toRow = Board::GRID_LENGTH - 1 - (m_mouse.y / tileSize);
+    const u8 fromRow = GRID_LENGTH - 1 - (m_mouse.graby / tileSize);
+    const u8 toRow = GRID_LENGTH - 1 - (m_mouse.y / tileSize);
     
     Move m { fromCol, toCol, fromRow, toRow };
     onNewMove ( m );
     }
 
-auto Viewer::draw (Board& board) -> void
+auto Viewer::draw (Board& board, const Move& last) -> void
     {
     SDL_SetRenderDrawColor (m_renderer, 255, 255, 255, 255);
     SDL_RenderClear (m_renderer);
-    drawTiles ( board );
+    drawTiles ( board, last );
     drawPieces ( board );
     if ( m_mouse.isReleased ) 
         doMovement ();

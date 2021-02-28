@@ -67,11 +67,11 @@ auto EvalPositionPlayer::getMove (Board& board) const -> Move
             [&board, &move, &selected, &maxScore, this] () -> u32
                 {
                 u32 thisScore = 0;
-                for (int c = 0; c < Board::GRID_LENGTH; ++c) 
-                    for (int r = 0; r < Board::GRID_LENGTH; ++r)
+                for (int c = 0; c < GRID_LENGTH; ++c) 
+                    for (int r = 0; r < GRID_LENGTH; ++r)
                         {
                         u8 piece = board.pieceAt (c, r);
-                        if (piece && (piece & Board::COLOR_MASK) == color) 
+                        if (piece && (piece & COLOR_MASK) == color) 
                             {
                             thisScore += evalPiece (piece, c, r);
                             }
@@ -130,11 +130,11 @@ auto RandomPlayer::getMove (Board& board) const -> Move
 auto WhiteSquares::evalBoard (Board& board) const -> u32 
     {
     int countWhite = 0; 
-    for (int c = 0; c < board.GRID_LENGTH; ++c)
-        for (int r = 0; r < board.GRID_LENGTH; ++r) 
+    for (int c = 0; c < GRID_LENGTH; ++c)
+        for (int r = 0; r < GRID_LENGTH; ++r) 
             {
             u8 piece = board.pieceAt (c, r); 
-            if (piece != EMPTY && (piece & Board::COLOR_MASK) == color)
+            if (piece != EMPTY && (piece & COLOR_MASK) == color)
                 {
                 if (board.colorAt(c, r) == WHITE)
                     countWhite++;
@@ -147,12 +147,12 @@ auto WhiteSquares::evalBoard (Board& board) const -> u32
 auto BlackSquares::evalBoard (Board& board) const -> u32
     {
     int countBlack = 0; 
-    for (int c = 0; c < board.GRID_LENGTH; ++c)
-        for (int r = 0; r < board.GRID_LENGTH; ++r) 
+    for (int c = 0; c < GRID_LENGTH; ++c)
+        for (int r = 0; r < GRID_LENGTH; ++r) 
             {
             u8 piece = board.pieceAt (c, r); 
 
-            if (piece != EMPTY && (piece & Board::COLOR_MASK) == color)
+            if (piece != EMPTY && (piece & COLOR_MASK) == color)
                 {
                 if (board.colorAt(c, r) == BLACK)
                     countBlack++;
@@ -192,11 +192,11 @@ auto Defensive::evalBoard (Board& board) const -> u32
     {
     u8 pieces = 0;
     u8 piecesAttacked = 0;
-    for (int c = 0; c < Board::GRID_LENGTH; ++c) 
-        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
+    for (int c = 0; c < GRID_LENGTH; ++c) 
+        for (int r = 0; r < GRID_LENGTH; ++r) 
             {
             u8 piece = board.pieceAt (c, r);
-            if (piece && ((piece & Board::COLOR_MASK) == color))
+            if (piece && ((piece & COLOR_MASK) == color))
                 {
                 pieces++;
                 if (board.isAttacked (c, r))
@@ -211,11 +211,11 @@ auto Suicidal::evalBoard (Board& board) const -> u32
     {
     u8 pieces = 0;
     u8 piecesAttacked = 0;
-    for (int c = 0; c < Board::GRID_LENGTH; ++c) 
-        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
+    for (int c = 0; c < GRID_LENGTH; ++c) 
+        for (int r = 0; r < GRID_LENGTH; ++r) 
             {
             u8 piece = board.pieceAt (c, r);
-            if (piece && (piece & Board::COLOR_MASK) == color) 
+            if (piece && (piece & COLOR_MASK) == color) 
                 {
                 pieces++;
                 if (board.isAttacked (c, r))
@@ -231,11 +231,11 @@ auto Pacifist::evalBoard (Board& board) const -> u32
     u8 pieces = 0;
     u8 piecesAttacked = 0;
     u8 enemy = (color == BLACK ? WHITE: BLACK);
-    for (int c = 0; c < Board::GRID_LENGTH; ++c) 
-        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
+    for (int c = 0; c < GRID_LENGTH; ++c) 
+        for (int r = 0; r < GRID_LENGTH; ++r) 
             {
             u8 piece = board.pieceAt (c, r);
-            if (piece && (piece & Board::COLOR_MASK) == enemy) 
+            if (piece && (piece & COLOR_MASK) == enemy) 
                 {
                 pieces++;
                 if (board.isAttacked (c, r))
@@ -251,11 +251,11 @@ auto Offensive::evalBoard (Board& board) const -> u32
     u8 pieces = 0;
     u8 piecesAttacked = 0;
     u8 enemy = (color == BLACK ? WHITE: BLACK);
-    for (int c = 0; c < Board::GRID_LENGTH; ++c) 
-        for (int r = 0; r < Board::GRID_LENGTH; ++r) 
+    for (int c = 0; c < GRID_LENGTH; ++c) 
+        for (int r = 0; r < GRID_LENGTH; ++r) 
             {
             u8 piece = board.pieceAt (c, r);
-            if (piece && (piece & Board::COLOR_MASK) == enemy) 
+            if (piece && (piece & COLOR_MASK) == enemy) 
                 {
                 pieces++;
                 if (board.isAttacked (c, r))
@@ -280,7 +280,7 @@ auto Centre::evalPiece (u8, u8 column, u8) const -> u8
     
 auto BongCloud::evalPiece (u8 piece, u8 column, u8) const -> u8
     {
-    u8 type = piece & Board::TYPE_MASK;
+    u8 type = piece & TYPE_MASK;
     u8 ret = 0U;
 
     if ( m_move == 0 && type == PAWN && ( column == 3 || column == 4) ) 

@@ -27,7 +27,7 @@ struct Viewer
     Viewer (const Viewer& other) = delete;
     bool operator= (const Viewer& other) = delete;
 
-    auto draw ( Board& board) -> void; 
+    auto draw ( Board& board, const Move& last ) -> void; 
     auto update () -> void; // updates current key presses 
 
     auto isPressed ( int key ) const -> bool;
@@ -44,7 +44,7 @@ protected:
     int m_width;
     Mouse m_mouse;
 
-    auto drawTiles ( const Board& board ) -> void;
+    auto drawTiles ( const Board& board, const Move& last ) -> void;
     auto drawPieces ( const Board& board ) -> void;
     auto doMovement () -> void;
 

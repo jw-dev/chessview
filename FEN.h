@@ -6,7 +6,7 @@
 
 namespace FEN 
     {
-    auto toFEN ( Board* board ) -> std::string;
+    auto toFEN ( Board* board, u16 halfMoveStaleClock, u16 fullMoveclock ) -> std::string;
     }
 
 #endif

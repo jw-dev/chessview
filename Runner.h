@@ -25,6 +25,9 @@ protected:
     std::map <u8, std::unique_ptr<Player>> m_players;
     BoardState m_state;
     u8 m_winner;
+    Move m_lastMove;
+    u16 m_staleMoveHalfClock = 0U;
+    u16 m_fullMoves = 0U;
 
     auto createDefaultBoard () -> void;
     auto doMove ( Board& b, Move& m ) -> void;

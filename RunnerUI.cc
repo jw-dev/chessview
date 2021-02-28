@@ -21,7 +21,7 @@ RunnerUI::RunnerUI ()
             return; // nope
 
         // check promotion 
-        const u8 piece = b.pieceAt ( move.fromCol, move.fromRow ) & Board::TYPE_MASK;
+        const u8 piece = b.pieceAt ( move.fromCol, move.fromRow ) & TYPE_MASK;
 
         if ( piece == PAWN && ((whiteMove && move.toRow == 7) || (!whiteMove && move.toRow == 0)) )
             move.promotion = QUEEN;
@@ -75,7 +75,7 @@ auto RunnerUI::tick () -> bool
         undo ();
         
     // draw board
-    m_viewer.draw ( getBoard() );
+    m_viewer.draw ( getBoard(), m_lastMove );
 
     // add delay if computer vs computer
     if ( !m_paused && m_players[WHITE] && m_players[BLACK] ) 
