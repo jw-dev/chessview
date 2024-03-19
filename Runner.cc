@@ -3,7 +3,8 @@
 Runner::Runner()
   : m_players (), 
     m_state (STATE_NORMAL), 
-    m_winner ( 0U ) 
+    m_winner ( 0U ),
+    m_lastMove()
     {
     }
 
@@ -80,6 +81,9 @@ auto Runner::run () -> std::string
         case STATE_STALEMATE: oss << "Stalemate"; break;
         case STATE_FORCED_DRAW_FIFTY_MOVES: oss << "Draw by 50 move rule"; break;
         case STATE_FORCED_DRAW_INSUFFICIENT_MATERIAL: oss << "Draw by insufficient material"; break;
+        case STATE_NORMAL:
+        default: 
+            oss << "Game terminated abruptly";
         }
     oss << "\n"
         << FEN::toFEN ( &final, m_staleMoveHalfClock, m_fullMoves );
