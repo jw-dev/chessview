@@ -1,91 +1,80 @@
 #include "Runner.h"
 
 Runner::Runner()
-  : m_players (), 
-    m_state (STATE_NORMAL), 
-    m_winner ( 0U ),
-    m_lastMove()
-    {
-    }
+    : m_players(), m_state(STATE_NORMAL), m_winner(0U), m_lastMove() {}
 
-auto Runner::addPlayer ( u8 color, std::unique_ptr<Player>&& player ) -> void
-    {
-    assert ( color == BLACK || color == WHITE );
+auto Runner::addPlayer(u8 color, std::unique_ptr<Player> &&player) -> void {
+    assert(color == BLACK || color == WHITE);
     player->color = color;
-    m_players [color] = std::move ( player );
-    }
+    m_players[color] = std::move(player);
+}
 
-auto Runner::createDefaultBoard () -> void 
-    {
-    Board& b = getBoard ();
-    b.reset ();
+auto Runner::createDefaultBoard() -> void {
+    Board &b = getBoard();
+    b.reset();
 
-    // Pawns 
-    for (int row: {1, 6}) 
-        for (int column = 0; column < 8; ++column)
-            {
-            u8 color = row == 1 ? WHITE: BLACK; 
-            b.setPiece (PAWN | color, column, row);
-            }
+    // Pawns
+    for (int row : {1, 6})
+        for (int column = 0; column < 8; ++column) {
+            u8 color = row == 1 ? WHITE : BLACK;
+            b.setPiece(PAWN | color, column, row);
+        }
 
-    for (int row: {0, 7})
-        {
-        u8 color = row == 0 ? WHITE: BLACK;
+    for (int row : {0, 7}) {
+        u8 color = row == 0 ? WHITE : BLACK;
         b.setPiece(QUEEN | color, 3, row);
         b.setPiece(KING | color, 4, row);
-        for (int columnMultiplier: {0, 1})
-            {
+        for (int columnMultiplier : {0, 1}) {
             b.setPiece(BISHOP | color, 2 + (3 * columnMultiplier), row);
             b.setPiece(KNIGHT | color, 1 + (5 * columnMultiplier), row);
             b.setPiece(CASTLE | color, 0 + (7 * columnMultiplier), row);
-            }
         }
     }
+}
 
-auto Runner::doMove ( Board& b, Move& m ) -> void
-    {
-    if ( !b.doMove ( m ) )
-        throw std::runtime_error ("player attempted an illegal move");
-    
+auto Runner::doMove(Board &b, Move &m) -> void {
+    if (!b.doMove(m))
+        throw std::runtime_error("player attempted an illegal move");
+
     m_lastMove = m;
     m_fullMoves++;
-    m_staleMoveHalfClock = (b.isStale())? m_staleMoveHalfClock + 1: 0;
-    m_state = b.getBoardState (m_staleMoveHalfClock);
-    }
+    m_staleMoveHalfClock = (b.isStale()) ? m_staleMoveHalfClock + 1 : 0;
+    m_state = b.getBoardState(m_staleMoveHalfClock);
+}
 
-auto Runner::run () -> std::string 
-    {
-    Board& board = getBoard ();
-    board.reset ();
-    createDefaultBoard ();
+auto Runner::run() -> std::string {
+    Board &board = getBoard();
+    board.reset();
+    createDefaultBoard();
 
-    for (;;)
-        {
-        if ( tick() )
+    for (;;) {
+        if (tick())
             break;
-        }
+    }
     // after we're done, return a FEN of the final board state.
-    Board& final = getBoard ();
-    BoardState state = final.getBoardState (m_staleMoveHalfClock);
+    Board &final = getBoard();
+    BoardState state = final.getBoardState(m_staleMoveHalfClock);
     std::ostringstream oss;
-    switch ( state ) 
-        {
-        case STATE_CHECKMATE: 
-            {
-            const u8 winner = final.whiteMove()? BLACK: WHITE;
-            oss << "Checkmate ("
-                << ( winner == WHITE? "White": "Black" )
-                << " wins)";
-            break;
-            }
-        case STATE_STALEMATE: oss << "Stalemate"; break;
-        case STATE_FORCED_DRAW_FIFTY_MOVES: oss << "Draw by 50 move rule"; break;
-        case STATE_FORCED_DRAW_INSUFFICIENT_MATERIAL: oss << "Draw by insufficient material"; break;
-        case STATE_NORMAL:
-        default: 
-            oss << "Game terminated abruptly";
-        }
-    oss << "\n"
-        << FEN::toFEN ( &final, m_staleMoveHalfClock, m_fullMoves );
-    return oss.str ();
+    switch (state) {
+    case STATE_CHECKMATE: {
+        const u8 winner = final.whiteMove() ? BLACK : WHITE;
+        oss << "Checkmate (" << (winner == WHITE ? "White" : "Black")
+            << " wins)";
+        break;
     }
+    case STATE_STALEMATE:
+        oss << "Stalemate";
+        break;
+    case STATE_FORCED_DRAW_FIFTY_MOVES:
+        oss << "Draw by 50 move rule";
+        break;
+    case STATE_FORCED_DRAW_INSUFFICIENT_MATERIAL:
+        oss << "Draw by insufficient material";
+        break;
+    case STATE_NORMAL:
+    default:
+        oss << "Game terminated abruptly";
+    }
+    oss << "\n" << FEN::toFEN(&final, m_staleMoveHalfClock, m_fullMoves);
+    return oss.str();
+}
