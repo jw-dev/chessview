@@ -1,14 +1,14 @@
 #include "Player.h"
 #include "Runner.h"
 #include <algorithm>
+#include <cstdlib>
 #include <iostream>
+#include <iterator>
 
 using PlayerCreator = std::function<std::unique_ptr<Player>()>;
 
-static std::string programName;
-
 // List of available players
-static const std::map<std::string, PlayerCreator> players = {
+static const auto playerCreators = std::map<std::string, PlayerCreator>{
     {"random", makeRandom},
     {"whitesquares", makeWhiteSquares},
     {"blacksquares", makeBlackSquares},
@@ -25,77 +25,75 @@ static const std::map<std::string, PlayerCreator> players = {
     {"bongcloud", makeBongCloud},
 };
 
-static void error(const std::string &msg) {
-    std::cerr << msg << std::endl
-              << "usage: " << programName << " [-headless] white black"
-              << std::endl;
-    exit(EXIT_FAILURE);
+struct Args {
+    bool isHeadless;
+    std::vector<std::string> players;
+};
+
+static Args parseArgs(int argc, char **argv) {
+    auto args = Args{};
+    auto vec = std::vector<std::string>{argv, argv + argc};
+    args.isHeadless =
+        std::find(vec.begin(), vec.end(), "-headless") != vec.end();
+
+    std::copy_if(
+        vec.begin(), vec.end(), std::back_inserter(args.players),
+        [argv](const auto &arg) { return arg != argv[0] && arg[0] != '-'; });
+
+    return args;
 }
 
-// Helper function to create a player from their name
-static auto makePlayer(const std::string &arg) -> std::unique_ptr<Player> {
-    if (players.find(arg) != players.end()) {
-        return players.at(arg)();
-    } else {
-        std::cerr << "Unknown player: " << arg << " (assuming random)"
-                  << std::endl;
-        return makeRandom();
-    }
-}
-
-static std::size_t numPlayers(const std::vector<std::string> &args) {
-    std::size_t players = 0;
-
-    for (std::size_t i = 1; i < args.size(); ++i) {
-        const std::string &arg = args.at(i);
-        if (arg[0] == '-')
-            continue;
-        players++;
-    }
+static auto makePlayers(std::vector<std::string> playerNames) {
+    auto players = std::vector<std::unique_ptr<Player>>{};
+    std::transform(playerNames.begin(), playerNames.end(),
+                   std::back_inserter(players), [](const std::string &name) {
+                       if (playerCreators.contains(name)) {
+                           return playerCreators.at(name)();
+                       }
+                       return makeRandom();
+                   });
     return players;
 }
 
-static bool findArg(const std::vector<std::string> &args,
-                    const std::string &needle) {
-    return std::find(args.begin(), args.end(), needle) != args.end();
+static auto runHeadless(std::vector<std::unique_ptr<Player>> &&players) {
+    auto runner = RunnerStd{std::move(players[0]), std::move(players[1])};
+    const auto result = runner.run();
+    std::cout << result << std::endl;
+}
+
+static auto runViewer(std::vector<std::unique_ptr<Player>> &&players) {
+    auto runner = RunnerUI{};
+    runner.addPlayer(BLACK, std::move(players.back()));
+    if (players.size() == 2) { // either player or computer can play as white
+        runner.addPlayer(WHITE, std::move(players.front()));
+    }
+
+    const auto result = runner.run();
+    std::cout << result << std::endl;
 }
 
 int main(int argc, char **argv) {
-    std::vector<std::string> args(argv, argv + argc);
+    const auto args = parseArgs(argc, argv);
 
-    programName = argv[0];
-    bool isHeadless = findArg(args, "-headless");
-    int players = numPlayers(args);
-    std::unique_ptr<Runner> runner;
-
-    switch (players) {
-    case 1: {
-        if (isHeadless)
-            error("headless requires two players to be provided");
-        runner = std::make_unique<RunnerUI>();
-        runner->addPlayer(BLACK, makePlayer(args.back()));
-        break;
-    }
-    case 2: {
-        if (isHeadless)
-            runner = std::make_unique<RunnerStd>();
-        else
-            runner = std::make_unique<RunnerUI>();
-        runner->addPlayer(WHITE, makePlayer(args.at(args.size() - 2)));
-        runner->addPlayer(BLACK, makePlayer(args.back()));
-        break;
-    }
-    default: {
-        if (!players)
-            error("one or more players must be provided");
-        else
-            error("unexpected argument");
-        return EXIT_FAILURE;
-    }
+    if (args.players.size() == 0 ||
+        (args.isHeadless && args.players.size() != 2)) {
+        std::cerr << "Invalid configuration"
+                  << "\n"
+                  << "Usage: " << argv[0] << " [-headless] [white] black"
+                  << std::endl;
+        std::exit(1);
     }
 
-    if (runner) {
-        std::string result = runner->run();
-        std::cout << result << std::endl;
+    for (const auto &name : args.players) {
+        if (!playerCreators.contains(name)) {
+            std::cerr << "Unrecognized player: " << name
+                      << " (assuming `random`)" << std::endl;
+        }
+    }
+
+    if (args.isHeadless) {
+        runHeadless(makePlayers(args.players));
+    } else {
+        runViewer(makePlayers(args.players));
     }
 }

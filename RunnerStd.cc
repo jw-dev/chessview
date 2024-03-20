@@ -1,6 +1,11 @@
 #include "Runner.h"
 
-RunnerStd::RunnerStd() : m_board() {}
+RunnerStd::RunnerStd(std::unique_ptr<Player> &&white,
+                     std::unique_ptr<Player> &&black)
+    : m_board{} {
+    addPlayer(WHITE, std::move(white));
+    addPlayer(BLACK, std::move(black));
+}
 
 auto RunnerStd::getBoard() -> Board & { return m_board; }
 

@@ -49,12 +49,13 @@ struct RunnerUI final : public Runner {
 };
 
 struct RunnerStd final : public Runner {
-    RunnerStd();
+    RunnerStd() = default;
+    RunnerStd(std::unique_ptr<Player> &&white, std::unique_ptr<Player> &&black);
 
   private:
     auto getBoard() -> Board & override;
     auto tick() -> bool override;
-    Board m_board;
+    Board m_board = {};
 };
 
 #endif
